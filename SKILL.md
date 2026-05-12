@@ -23,11 +23,11 @@ Consult the relevant file based on what you're working on:
 | Telemetry API and stream design | `telemetry.md` |
 | Performance rules and Snowflake cost impact | `performance-rules.md` |
 | Real worked examples | `examples.md` |
-| Org-specific patterns and known pitfalls | `tribal-knowledge.md` |
+| Customer org context (accounts, tags, goals) | `my-org/` directory |
 
 Always read `performance-rules.md` before generating any dimension definition.
 Always read `allocation-design.md` before writing any Allocation Dimension.
-Always read `tribal-knowledge.md` before publishing or finalizing any definition.
+Always read all files in `my-org/` before writing any definition — this is the customer's org context.
 
 ## Non-Negotiable Rules
 

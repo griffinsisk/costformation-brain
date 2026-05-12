@@ -76,7 +76,11 @@ allocation-design.md     ← Allocation-specific design rules and anti-patterns
 telemetry.md             ← Telemetry API, stream design, target dimensions
 performance-rules.md     ← Snowflake cost rules — the agent reads this before every definition
 examples.md              ← 10 real-world-derived worked examples
-tribal-knowledge/        ← Org-specific patterns (customize for your environment)
+my-org/                  ← YOUR org context — accounts, tags, dimensions, goals
+  accounts.yaml          ← AWS account IDs, names, owners, department mapping
+  tags.yaml              ← Tag keys in use, naming conventions, coverage notes
+  dimensions.yaml        ← Existing dimensions + what you want to build
+  context.md             ← Business structure, goals, constraints (freeform)
 ```
 
 ## How It Works
@@ -85,18 +89,34 @@ Your AI assistant reads `SKILL.md` as its entry point. That file contains:
 - **Non-negotiable rules** the agent must always follow (source prefixes, performance constraints, allocation design rules)
 - **A routing table** that tells the agent which corpus file to consult for each type of task
 
-The corpus files contain the actual knowledge — syntax references, worked examples, anti-patterns sourced from CloudZero's engineering team and real customer implementations. The agent reads them on demand, not all at once, so context window usage stays efficient.
+The corpus files contain the actual knowledge — syntax references, worked examples, anti-patterns sourced from CloudZero's engineering team and real customer implementations. The `my-org/` directory provides your org-specific context — accounts, tags, existing dimensions, and goals. The agent reads these on demand, not all at once, so context window usage stays efficient.
 
-## Customizing for Your Org
+## Customize for Your Org
 
-The `tribal-knowledge/` directory is yours to fill in. Add:
-- Your account ID → name mappings
-- Tag naming conventions your teams use
-- Active telemetry stream inventory
-- Dimension dependency map (which dimensions reference which)
-- Known pitfalls specific to your environment
+The `my-org/` directory is where you provide context about **your** environment. The agent reads these files before writing any dimension — it's the brief that makes the output match your infrastructure.
 
-When tribal knowledge grows large enough, redistribute it into the relevant corpus files or create new ones.
+| File | What to put in it |
+|---|---|
+| `accounts.yaml` | AWS account IDs, names, owners, department/team mapping |
+| `tags.yaml` | Tag keys your teams use, naming conventions, coverage gaps |
+| `dimensions.yaml` | Existing dimensions + dimensions you want to build |
+| `context.md` | Business structure, cost views you need, constraints, preferences |
+
+Each file has a commented template — fill in what's relevant, skip what isn't.
+
+### Auto-populate from CloudZero MCP
+
+If you have the [CloudZero MCP server](https://docs.cloudzero.com/docs/ai-mcp-server) connected, ask your agent:
+
+```
+Populate my-org/ from my CloudZero account
+```
+
+The agent will pull your account list, existing dimensions, and tag keys from the API and fill in the templates. You then add the business context the API can't know — which team owns which account, what dimensions you want to build, how shared costs should be split.
+
+### Manual path
+
+No MCP required. Open the files in `my-org/`, fill in the templates, and start asking your agent to write dimensions. Even partial context (just your account list, or just your tag conventions) significantly improves output quality.
 
 ## For Claude Code Users
 

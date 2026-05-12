@@ -1,0 +1,38 @@
+# My Organization — Tag Inventory
+#
+# Document the tags your teams apply to cloud resources.
+# The agent uses this to pick the right Source and handle inconsistencies
+# (casing variants, legacy vs current keys, coverage gaps).
+#
+# If you have the CloudZero MCP connected, ask your agent:
+#   "Populate my-org/tags.yaml with tag keys from my CloudZero account"
+# It will pull active tag keys. You add the conventions and coverage notes.
+
+tags:
+  # - key: environment
+  #   values: [production, staging, development, sandbox]
+  #   coverage: high                  # high | medium | low — how consistently is this tag applied?
+  #   casing: inconsistent            # consistent | inconsistent — do teams use mixed casing?
+  #   notes: "Some teams use 'env' instead of 'environment'. Normalize with Lowercase transform."
+
+  # - key: team
+  #   values: [platform, payments, data-platform, ml-infra]
+  #   coverage: medium
+  #   casing: consistent
+  #   notes: "Only applied to ECS/EKS workloads. EC2 instances are often untagged."
+
+  # - key: product
+  #   values: [core-api, analytics, billing]
+  #   coverage: low
+  #   casing: inconsistent
+  #   notes: "New tag standard — only ~40% of resources tagged so far."
+
+# Kubernetes labels (if K8s integration is active)
+k8s_labels:
+  # - key: app.kubernetes.io/name
+  #   coverage: high
+  #   notes: "Standard Helm label, reliable across all clusters"
+
+  # - key: team
+  #   coverage: medium
+  #   notes: "Custom label, applied by platform team's admission webhook"

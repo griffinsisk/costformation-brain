@@ -1,0 +1,23 @@
+# My Organization — AWS Accounts
+#
+# List your AWS accounts with metadata the agent uses when writing dimensions.
+# This file is the source of truth for account-based rules (Department, Environment, Team mappings).
+#
+# If you have the CloudZero MCP connected, ask your agent:
+#   "Populate my-org/accounts.yaml from my CloudZero account"
+# It will pull account IDs and names automatically. You add the business context.
+
+accounts:
+  # - id: "123456789012"
+  #   name: Production Main
+  #   environment: production        # production | staging | development | sandbox
+  #   department: Engineering        # which business unit owns this account
+  #   team: platform                 # which team operates in this account
+  #   notes: ""                      # anything the agent should know (shared account, legacy, etc.)
+
+  # - id: "234567890123"
+  #   name: Data Lake Shared
+  #   environment: production
+  #   department: Engineering
+  #   team: data-platform
+  #   notes: "Shared across all products — costs should be allocated, not assigned directly"
