@@ -16,12 +16,11 @@ Consult the relevant file based on what you're working on:
 | Understanding core terminology | `concepts.md` |
 | File structure and YAML skeleton | `file-structure.md` |
 | Source prefixes and available sources | `sources.md` |
-| Writing conditions (Equals, Contains, And/Or…) | `conditions.md` |
-| Applying transforms (Lower, Split, Normalize…) | `transforms.md` |
+| Writing conditions and transforms | `conditions-and-transforms.md` |
 | Choosing and writing dimension types | `dimension-types.md` |
 | Allocation dimension design and anti-patterns | `allocation-design.md` |
-| Telemetry API and stream design | `telemetry.md` |
-| Performance rules and Snowflake cost impact | `performance-rules.md` |
+| Telemetry API and stream design | `telemetry.md` + `sources.md` |
+| Performance rules and Snowflake cost impact | `performance-rules.md` ← always read before any definition |
 | Real worked examples | `examples.md` |
 | Customer org context (accounts, tags, goals) | `my-org/` directory |
 
