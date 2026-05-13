@@ -17,7 +17,7 @@ git clone https://github.com/griffinsisk/costformation-brain.git
 
 **VS Code with the CloudZero Toolkit** (`cloudzero.costformation-toolkit`):
 
-The toolkit handles authentication, pulling your latest definition, and publishing changes — no API key in the terminal needed. If you don't have it yet, install it from the [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=cloudzero.costformation-toolkit).
+The toolkit handles authentication, pulling your latest definition, and publishing changes. If you don't have it yet, install it from the [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=cloudzero.costformation-toolkit).
 
 **Without the toolkit:**
 
@@ -29,7 +29,7 @@ curl -s -H "Authorization: Bearer $CZ_API_KEY" \
 
 ### 3. Tell your agent about the brain
 
-Agents won't read local files on their own — they need to be told. Copy the instruction file for your IDE to the project root:
+Copy one instruction file to your project root:
 
 | IDE / CLI | Command |
 |---|---|
@@ -38,61 +38,24 @@ Agents won't read local files on their own — they need to be told. Copy the in
 | GitHub Copilot | `mkdir -p .github && cp costformation-brain/.github/copilot-instructions.md .github/` |
 | Codex / Gemini / other | `cp costformation-brain/AGENTS.md ./AGENTS.md` |
 
-### 4. Populate your org context
-
-The `my-org/` directory has templates for your accounts, tags, existing dimensions, and goals. **This is the highest-impact step** — it's the difference between generic output and output that uses your actual infrastructure.
-
-#### With the CloudZero MCP (recommended)
-
-If you have the [CloudZero MCP server](https://docs.cloudzero.com/docs/ai-mcp-server) connected, the agent can pull most of this automatically. Run these prompts in order:
-
-**1. Discover your org structure and fill accounts + dimensions:**
-```
-Review my CloudZero organization — pull my accounts, existing custom dimensions,
-and top cost drivers by service and account. Write the results into
-costformation-brain/my-org/accounts.yaml and costformation-brain/my-org/dimensions.yaml
-using the template format in those files.
-```
-
-**2. Audit your tags and fill tag coverage:**
-```
-Analyze my tag coverage across all accounts — which tag keys are active, how
-consistently they're applied, and where the gaps are. Write the results into
-costformation-brain/my-org/tags.yaml using the template format.
-```
-
-**3. Add business context the API can't know:**
-
-After the agent populates the files, open `my-org/context.md` and add:
-- Which teams own which accounts
-- What dimensions you want to build and why
-- How shared costs should be split
-- Any constraints (e.g., "must match our JIRA team names for chargeback")
-
-#### Without the MCP
-
-Open the files in `my-org/`, fill in the commented templates manually. Even partial context (just your account list or tag conventions) significantly improves output.
-
-| File | What to put in it |
-|---|---|
-| `my-org/accounts.yaml` | AWS account IDs, names, owners, department/team mapping |
-| `my-org/tags.yaml` | Tag keys your teams use, naming conventions, coverage gaps |
-| `my-org/dimensions.yaml` | Existing dimensions + dimensions you want to build |
-| `my-org/context.md` | Business structure, cost views you need, constraints |
-
-### 5. Start building dimensions
-
-Open your project in VS Code (or your IDE of choice) and talk to your coding agent:
+### 4. Start building dimensions
 
 ```
 "Add a Team dimension that maps K8s labels to engineering teams"
 ```
 
-The agent reads the brain, checks your org context, and generates correct CostFormation YAML directly in your definition file.
+On first use, the agent automatically:
+- Parses your costformation file to extract accounts, tags, dimensions, and source references
+- Enriches with CloudZero MCP data if connected (account names, tag coverage, cost drivers)
+- Writes the results to `my-org/` so the context persists across sessions
 
-### 6. Publish
+When you pull a new version of your costformation file, the agent detects the change and refreshes the org context automatically.
 
-**VS Code with the CloudZero Toolkit:** Use the toolkit's built-in publish command — it handles diff review and conflict resolution.
+Any business context you provide in conversation — team-to-account mappings, CSVs, org charts, goals, constraints — the agent persists to `my-org/context.md` so it's not lost between sessions.
+
+### 5. Publish
+
+**VS Code with the CloudZero Toolkit:** Use the toolkit's built-in publish command.
 
 **Without the toolkit:**
 
@@ -107,9 +70,15 @@ curl -X POST -H "Authorization: Bearer $CZ_API_KEY" \
 
 The instruction file you copied in step 3 forces the agent to read `SKILL.md` before writing any CostFormation YAML. That file contains non-negotiable rules (source prefixes, performance constraints, allocation design) and a routing table that points to 10 corpus files covering syntax, conditions, transforms, telemetry, allocation design, and real-world examples.
 
-The `my-org/` directory provides your org-specific context. The agent reads everything on demand — not all at once — so context window usage stays efficient.
+The `my-org/` directory stores your org-specific context. It's auto-populated from your costformation file and the CloudZero MCP — you don't need to fill it in manually. The agent refreshes it whenever you pull a new costformation version.
 
 Without the instruction file, agents confidently generate wrong CostFormation syntax from general knowledge. The output looks plausible but uses incorrect structure. The brain fixes this.
+
+## Optional: Connect the CloudZero MCP
+
+The [CloudZero MCP server](https://docs.cloudzero.com/docs/ai-mcp-server) is read-only but significantly enriches the agent's understanding of your environment. With it connected, the agent can query your account's dimensions, costs, tags, and coverage data while writing definitions.
+
+The brain works without the MCP — it parses your costformation file directly — but MCP adds context that isn't in the YAML (account names, tag coverage percentages, cost distribution).
 
 ## Reference
 

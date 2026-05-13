@@ -1,57 +1,9 @@
 # My Organization — Dimensions
+# Auto-populated by the agent from your costformation file + CloudZero MCP.
+# Add your own goals and priorities in the "wanted" section.
 #
-# Document your existing dimensions and what you want to build.
-# The agent uses this to understand your current setup, avoid conflicts,
-# and write new dimensions that fit into your existing structure.
-#
-# Auto-populate with CloudZero MCP:
-#   "Review my CloudZero organization — pull my accounts, existing custom
-#    dimensions, and top cost drivers by service and account. Write the
-#    results into costformation-brain/my-org/accounts.yaml and
-#    costformation-brain/my-org/dimensions.yaml using the template format."
-#
-# The agent pulls dimension IDs, names, and types. You add the goals,
-# priorities, and what you want to build next.
+# last-synced: never
 
-# Dimensions that already exist in your CostFormation file
-existing:
-  # - id: AccountName
-  #   name: Account Name
-  #   type: standard              # standard | allocation | child
-  #   hide: true
-  #   notes: "Maps account IDs to names. Used as a reference by other dimensions."
+existing: []
 
-  # - id: Environment
-  #   name: Environment
-  #   type: standard
-  #   notes: "Tag-based. Coverage is ~70% — untagged resources fall to DefaultValue."
-
-  # - id: SharedRDSByProduct
-  #   name: Shared RDS by Product
-  #   type: allocation
-  #   allocation_method: telemetry   # telemetry | proportional | fixed
-  #   stream: rds-writes-by-product
-  #   notes: "Splits shared RDS costs. Stream is healthy, sends hourly."
-
-# Dimensions you want to build or improve
-wanted:
-  # - id: Team
-  #   name: Engineering Team
-  #   purpose: "Map all cloud costs to the team that owns them"
-  #   sources: "K8s labels (team), AWS tags (team, owner), account ownership"
-  #   priority: high               # high | medium | low
-  #   notes: "Need to handle shared infrastructure — platform team shouldn't absorb all shared costs"
-
-  # - id: Product
-  #   name: Product
-  #   purpose: "Cost per product for executive reporting"
-  #   sources: "Tags, K8s namespaces, account mapping for dedicated accounts"
-  #   priority: high
-  #   notes: "Some products share RDS and ElastiCache — need allocation dimensions"
-
-  # - id: Customer
-  #   name: Cost per Customer
-  #   purpose: "Unit economics for top 50 customers"
-  #   sources: "Telemetry — API request counts per customer from Datadog"
-  #   priority: medium
-  #   notes: "Need to set up telemetry pipeline first"
+wanted: []

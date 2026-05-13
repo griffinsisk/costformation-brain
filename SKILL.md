@@ -25,9 +25,13 @@ Consult the relevant file based on what you're working on:
 | Real worked examples | `examples.md` |
 | Customer org context (accounts, tags, goals) | `my-org/` directory |
 
-Always read `performance-rules.md` before generating any dimension definition.
-Always read `allocation-design.md` before writing any Allocation Dimension.
-Always read all files in `my-org/` before writing any definition — this is the customer's org context.
+**Before any CostFormation work:**
+1. Check if `my-org/` needs populating or refreshing (see agent instruction file for freshness rules).
+2. Read all files in `my-org/` — this is the customer's org context.
+3. Read `performance-rules.md` before generating any dimension definition.
+4. Read `allocation-design.md` before writing any Allocation Dimension.
+
+**When the user provides business context** (team mappings, CSVs, org charts, goals, constraints), persist it to `my-org/context.md` so it survives across sessions.
 
 ## Non-Negotiable Rules
 
