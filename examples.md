@@ -1,5 +1,7 @@
 # Worked Examples
 
+> Derived from 12 real customer CostFormation files (anonymized). Patterns range from simple account mappings to 38-dimension K8s + multi-cloud deployments with telemetry allocation pipelines. Source files preserved in the CloudZero Shared Drive (Accounts folder).
+
 Ten real-world-derived examples, each demonstrating a distinct CostFormation pattern. Examples progress from simple to complex.
 
 ---

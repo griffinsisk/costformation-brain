@@ -1,5 +1,7 @@
 # Performance Rules
 
+> Sourced from CloudZero Engineering — Matt Yellen's *CostFormation Best Practices* (Confluence, updated Aug 2025). Matt maintains the Snowflake infrastructure these dimensions query against. Original preserved in `reference/eng-costformation-best-practices.md`.
+
 **Read this file before generating any dimension definition.**
 
 Everything CostFormation computes is stored and reprocessed in Snowflake. Bad patterns don't just produce wrong results — they directly increase CloudZero's infrastructure cost.

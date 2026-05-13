@@ -1,5 +1,7 @@
 # Sources Reference
 
+> Complete dimension mapping sourced from the canonical *CZ Dimension Reference* spreadsheet. Original preserved in `reference/CZ Dimension Reference.csv`.
+
 ## Prefix Syntax — Always Required
 
 ```yaml

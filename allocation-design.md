@@ -1,8 +1,8 @@
 # Allocation Dimension Design
 
-**Read this file before writing any Allocation Dimension.**
+> Sourced from CloudZero Engineering — Matt Yellen's *CostFormation Best Practices* (Confluence, updated Aug 2025). Matt maintains the Snowflake infrastructure these dimensions query against. Original preserved in `reference/eng-costformation-best-practices.md`.
 
-Source: CloudZero Engineering CostFormation Best Practices (principal engineer who maintains Snowflake).
+**Read this file before writing any Allocation Dimension.**
 
 ---
 

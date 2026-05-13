@@ -152,7 +152,16 @@ The instruction files (`CLAUDE.md`, `.cursorrules`, `copilot-instructions.md`, `
 | `AGENTS.md` | Codex, Gemini CLI, others | Varies by tool |
 | `SKILL.md` | Any agent (manual read) | Only if instructed |
 
-## Reference
+## Sources & Attribution
+
+This corpus is built from real CloudZero engineering knowledge and customer implementations, not generic documentation:
+
+- **Performance rules and allocation design** — sourced from Matt Yellen's *CostFormation Best Practices* (CloudZero Confluence, Engineering wiki). Matt maintains the Snowflake infrastructure these dimensions query against. The original document is preserved in `reference/eng-costformation-best-practices.md`.
+- **Worked examples** — derived from 12 real customer CostFormation files (anonymized) ranging from simple account mappings to 38-dimension Kubernetes + multi-cloud deployments with telemetry allocation pipelines.
+- **Dimension reference table** — the canonical `CZ Dimension Reference.csv` mapping all built-in dimensions across CostFormation syntax, API references, and telemetry filter keys. Preserved in `reference/`.
+- **Non-negotiable rules** — aggregated from internal engineering tribal knowledge, customer support incidents, and the CFDL language reference.
+
+## Public Reference
 
 | Resource | URL |
 |---|---|
