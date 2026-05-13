@@ -13,25 +13,17 @@ mkdir my-costformation && cd my-costformation
 git clone https://github.com/griffinsisk/costformation-brain.git
 ```
 
-### 2. Connect to CloudZero and pull your dimensions
-
-**Recommended — CloudZero MCP (works with Claude Code, Cursor, and other MCP-enabled agents):**
-
-Connect the [CloudZero MCP server](https://docs.cloudzero.com/docs/ai-mcp-server) to your agent, then ask it:
-
-```
-Pull my current CostFormation definition and save it as costformation.cz.yaml
-```
-
-The agent authenticates via MCP and downloads your dimension file directly. This also enables the agent to query your account's dimensions, costs, and tags while writing new definitions.
-
-**Alternative — API (no MCP required):**
+### 2. Pull your current CostFormation file
 
 ```bash
 curl -s -H "Authorization: Bearer $CZ_API_KEY" \
   https://api.cloudzero.com/v1/cost-formation/definitions \
   -o costformation.cz.yaml
 ```
+
+**Optional — Connect the CloudZero MCP for richer context:**
+
+The [CloudZero MCP server](https://docs.cloudzero.com/docs/ai-mcp-server) is read-only — it can't pull or publish your CostFormation file. But connecting it gives the agent access to your account's dimensions, costs, and tags while writing new definitions, which significantly improves output quality.
 
 Your workspace should look like this:
 ```
