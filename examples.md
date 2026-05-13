@@ -316,35 +316,31 @@ Dimensions:
 
 ---
 
-## Example 7: Telemetry-Based Allocation (AllocateByStreams)
+## Example 7: Telemetry-Based Allocation (Full Pipeline)
 
-Pattern: split shared costs proportionally using usage signals sent via the Telemetry API.
+Pattern: the complete telemetry allocation pipeline — target dimension → telemetry stream → allocation dimension → combined view.
+
+**Step 1: Build the target dimension** — defines the elements costs will be allocated to:
 
 ```yaml
 Dimensions:
-  SplitObservabilityLogs:
-    Name: Split Observability Logs by Product
-    Type: Allocation
-    AllocateByStreams:
-      Streams:
-        - observability-logs-bytes-received-v2
-
-  SplitObservabilityMetrics:
-    Name: Split Observability Metrics by Product
-    Type: Allocation
-    AllocateByStreams:
-      Streams:
-        - observability-metrics-series-received-v2
-
-  SplitSharedGCP:
-    Name: Split Shared GCP by Product
-    Type: Allocation
-    AllocateByStreams:
-      Streams:
-        - gcp-telemetry-v1
+  Product:
+    Name: Product
+    Rules:
+      - Type: Group
+        Name: Email
+        Conditions:
+          - Source: Tag:Product
+            Equals: email
+      - Type: Group
+        Name: Messaging
+        Conditions:
+          - Source: Tag:Product
+            Equals: messaging
 ```
 
-Companion telemetry sender (Python):
+**Step 2: Send telemetry** — usage metrics that reference the target elements. The `element-name` must match the element names in the target dimension exactly:
+
 ```python
 import requests
 
@@ -359,6 +355,7 @@ records = [
     for product_name, bytes_received in hourly_log_bytes.items()
 ]
 
+# This creates the stream "observability-logs-bytes-received-v2"
 requests.post(
     "https://api.cloudzero.com/v1/telemetry/observability-logs-bytes-received-v2",
     headers={"Authorization": f"Bearer {API_KEY}"},
@@ -366,10 +363,47 @@ requests.post(
 )
 ```
 
+**Step 3: Build the allocation dimension** — references the stream to split shared costs:
+
+```yaml
+Dimensions:
+  SplitObservabilityLogs:
+    Name: Split Observability Logs by Product
+    Type: Allocation
+    AllocateByStreams:
+      Streams:
+        - observability-logs-bytes-received-v2
+```
+
+**Step 4: Combine into a unified view** — merge direct product costs with allocated shared costs using `GroupBy`:
+
+```yaml
+Dimensions:
+  ProductFullyCost:
+    Name: Product (Fully Allocated)
+    Rules:
+      - Type: Group
+        Name: Email
+        Conditions:
+          - Source: Tag:Product
+            Equals: email
+      - Type: Group
+        Name: Messaging
+        Conditions:
+          - Source: Tag:Product
+            Equals: messaging
+      - Type: GroupBy
+        Source: User:Defined:SplitObservabilityLogs
+```
+
+The `GroupBy` at the end pulls in allocated shared costs. Since the allocation uses the same element names (Email, Messaging), the costs combine automatically.
+
 **Why this works:**
-- Each stream measures a distinct usage signal — log bytes, metric series, or GCP resource consumption
-- Stream names include a version suffix (`-v2`) making it safe to evolve the signal without breaking existing allocations
-- One dimension per stream keeps allocations focused and debuggable
+- The target dimension (Product) defines what elements exist — the allocation references them
+- `element-name` in telemetry records maps directly to those elements
+- The stream becomes a source you reference in CostFormation, just like a tag or account
+- `GroupBy Source: User:Defined:<AllocationDim>` merges allocated costs with direct costs
+- Stream names include a version suffix (`-v2`) — safe to evolve the signal without breaking existing allocations
 - Telemetry records must use UTC, hourly-aligned timestamps (see `telemetry.md`)
 
 ---

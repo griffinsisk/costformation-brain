@@ -2,6 +2,16 @@
 
 Telemetry powers `AllocateByStreams` dimensions. You send usage signals to CloudZero; it uses them to split shared costs proportionally.
 
+## How the Pipeline Works
+
+1. **Build a target dimension** — a standard dimension (or group within one) that defines the elements you want to allocate costs to. E.g., an Environment dimension with Production, Staging, Development elements. This must exist first.
+2. **Send telemetry records** — usage metrics (API calls, bytes, tokens, etc.) that reference the target dimension's elements via `element-name`. The `filter` narrows which charges each record applies to. The proportions tell CloudZero how to split.
+3. **This creates a stream** — the stream name in the API URL becomes a source you reference in CostFormation.
+4. **Build an allocation dimension** — uses `AllocateByStreams` with your stream. It splits shared costs back to the target elements proportionally based on the telemetry signal.
+5. **Combine with a final dimension** — use `GroupBy Source: User:Defined:<AllocationDim>` to merge the allocated shared costs with direct costs into one unified view.
+
+Example: Bedrock is shared across environments. You send token usage per environment as telemetry → the stream splits Bedrock costs proportionally → a final Environment Allocated dimension shows each environment's direct costs plus its share of Bedrock.
+
 ## Endpoint
 
 ```
