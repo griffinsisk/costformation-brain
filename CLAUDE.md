@@ -4,7 +4,7 @@ When writing, reviewing, or debugging CloudZero CostFormation YAML:
 
 1. **Always read `costformation-brain/SKILL.md` first** — it contains non-negotiable rules and a routing table to the full knowledge corpus.
 2. **Auto-populate org context** — see rules below. Do this before writing any definition.
-3. **Always read all files in `costformation-brain/my-org/`** before writing any definition.
+3. **Read `costformation-brain/my-org/index.yaml` first** for a compact summary, then **`costformation-brain/my-org/context.md`** (always). Load full my-org/ detail files only when you need specifics. For new writes, load all detail files if the index is empty, stale, or missing relevant signals.
 4. **Always read `costformation-brain/performance-rules.md`** before generating any dimension definition.
 5. **Always read `costformation-brain/allocation-design.md`** before writing any Allocation Dimension.
 6. Consult the relevant corpus file from `costformation-brain/` based on the task — the routing table in SKILL.md tells you which file to read.
@@ -22,10 +22,9 @@ Corpus files read:
 - [other files consulted and why]
 
 Org context:
-- my-org/accounts.yaml — [what you found, or "empty, auto-populating"]
-- my-org/tags.yaml — [what you found]
-- my-org/dimensions.yaml — [what you found]
-- my-org/context.md — [any business context]
+- my-org/index.yaml — [summary: account count, dimension count, has_k8s, top signals]
+- my-org/context.md — [business context found, or "empty"]
+- Detail files loaded: [which ones and why, or "index was empty, loaded all"]
 
 Data sources checked:
 - CloudZero MCP: [connected/not connected, what you queried]
@@ -44,6 +43,7 @@ Before writing any CostFormation, check whether `costformation-brain/my-org/` ne
 2. If the CloudZero MCP is connected, enrich with: account names, tag coverage, cost drivers, and any dimensions not in the YAML.
 3. Write the results into the my-org/ files and update the `# last-synced:` header with the current ISO timestamp.
 4. Compute a hash of the costformation file and write it as `# source-hash: <sha256>` in each my-org/ file.
+5. Generate/refresh `my-org/index.yaml` with counts, top signals, and a `context-hash` (sha256 of `my-org/context.md`).
 
 **Refresh if stale:** Compare the current costformation file's sha256 hash against the `# source-hash:` in the my-org/ files. If they differ, the costformation file has changed — re-populate by repeating the steps above.
 
@@ -55,7 +55,7 @@ Before writing any CostFormation, check whether `costformation-brain/my-org/` ne
 
 1. **Query the CloudZero MCP first** (if connected) — pull accounts, tags, existing dimensions, cost data, tag coverage. Look at what's actually in the environment.
 2. **Parse the costformation file** — see what dimensions already exist, what sources and patterns are used, what naming conventions are in place.
-3. **Read `costformation-brain/my-org/`** — check for any persisted org context from prior sessions.
+3. **Read `costformation-brain/my-org/index.yaml`** first, then **`my-org/context.md`** — check for persisted org context from prior sessions. Load detail files if the index is missing signals you need.
 4. **Check ALL signal sources for the concept the user is asking about.** Don't just look at tags. For any dimension, check:
    - **Tags** — look for relevant tag keys and their values
    - **Account names** — accounts often contain environment, team, or product signals in their names (e.g., `aws-prod-app-001`, `ENTERPRISE-DEV`, `staging-data`)
@@ -72,3 +72,7 @@ Present what you built with a brief explanation of what you found in the data. T
 ## Persist Business Context
 
 When the user provides org context during conversation — team-to-account mappings, CSVs, org charts, business rules, constraints, or goals — **append it to `costformation-brain/my-org/context.md`** under the relevant section heading. Do not lose information between sessions. Never replace existing content — only add to it.
+
+## NEVER
+
+- Write bare `Source: <DimensionId>` for custom or CZ dimensions without a prefix — `User:Defined:` and `CZ:Defined:` prefixes are required. Core billing sources (`Account`, `Service`, `Region`, etc.) are bare
