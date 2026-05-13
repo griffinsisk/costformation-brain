@@ -282,7 +282,7 @@ Dimensions:
     Rules:
       - Type: GroupBy
         Sources:
-          - CZ:Defined:Resource
+          - Resource                    # raw CZRN — prefer CZ:Defined:ResourceSummaryDisplay for most use cases
         Transforms:
           - Type: Split
             Delimiter: "|"

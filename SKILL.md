@@ -35,7 +35,7 @@ Consult the relevant file based on what you're working on:
 ## Non-Negotiable Rules
 
 ALWAYS:
-- Use full prefixed Source syntax: `CZ:Defined:`, `User:Defined:`, `Tag:`
+- Use prefixed Source syntax for `CZ:Defined:`, `User:Defined:`, `Tag:`, and `K8s:` sources. Core billing sources (`Account`, `Service`, `Region`, `Resource`, `UsageFamily`, `CloudProvider`, etc.) are bare — no prefix
 - Prefer `HasValue: false` over `DefaultValue` to avoid processing every line item (see `performance-rules.md`)
 - Omit `DefaultValue` unless you specifically need a named catch-all — CostFormation defaults to "Not in Dimension" which is sufficient for most cases
 - Prefer `CZ:Defined:ResourceSummaryDisplay` over `ResourceId` for resource matching
@@ -49,7 +49,8 @@ ALWAYS:
 - Order rules most-specific-first — first match wins
 
 NEVER:
-- Write bare `Source: <DimensionId>` without a prefix — this is invalid
+- Write `Source: CZ:Defined:Account` or similar — core billing sources (`Account`, `Service`, `Region`, `Resource`, etc.) are bare, not prefixed with `CZ:Defined:`
+- Write bare `Source: Environment` or `Source: MyDimension` without a prefix — custom and CZ-defined dimensions require `User:Defined:` or `CZ:Defined:` prefixes
 - Use raw `ResourceId` as a match source — high cardinality, expensive in Snowflake
 - Layer allocation dimensions (allocation referencing another allocation's output) — causes exponential row expansion
 - Create overlapping `SpendToAllocate` conditions across multiple allocation dimensions

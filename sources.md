@@ -1,25 +1,33 @@
 # Sources Reference
 
-## Prefix Syntax — Always Required
+## Source Syntax
 
+Some sources require a prefix, others are bare. Use the wrong form and the definition will fail.
+
+**Prefixed sources** — always use the full prefix:
 ```yaml
-# CloudZero built-in dimensions:
-Source: CZ:Defined:<DimensionId>
-
-# User-defined (your own) dimensions:
-Source: User:Defined:<DimensionId>
-
-# Tag dimensions:
-Source: Tag:<TagName>
-
-# Kubernetes dimensions:
-Source: K8s:Label:<LabelName>
-Source: K8s:Namespace
-Source: K8s:Cluster
-Source: K8s:Workload
+Source: CZ:Defined:<DimensionId>      # CloudZero built-in dimensions
+Source: User:Defined:<DimensionId>    # Your own custom dimensions
+Source: Tag:<TagName>                 # AWS/Azure/GCP tags
+Source: K8s:Label:<LabelName>         # Kubernetes labels
+Source: K8s:Namespace                 # Kubernetes namespace
+Source: K8s:Cluster                   # Kubernetes cluster
+Source: K8s:Workload                  # Kubernetes workload
 ```
 
-> Writing bare `Source: Environment` (no prefix) is **invalid** and will fail. Always use the full prefixed form.
+**Bare sources** — no prefix, used as-is:
+```yaml
+Source: Account          # AWS account ID, Azure subscription, GCP project
+Source: Service          # Cloud service code
+Source: Region           # Cloud region
+Source: Resource         # CloudZero Resource Name (CZRN)
+Source: UsageFamily      # Usage family
+Source: CloudProvider    # AWS, GCP, Azure, etc.
+Source: UsageType        # Usage type
+Source: Operation        # Cloud operation
+```
+
+> Writing `Source: CZ:Defined:Account` is **wrong** — `Account` is a bare source. Writing `Source: Environment` is also wrong — custom dimensions need `User:Defined:Environment`.
 
 ## Complete Source Reference
 
