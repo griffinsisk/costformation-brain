@@ -93,6 +93,7 @@ allocation-design.md     ← Allocation-specific design rules and anti-patterns
 telemetry.md             ← Telemetry API, stream design, target dimensions
 performance-rules.md     ← Snowflake cost rules — the agent reads this before every definition
 examples.md              ← 10 real-world-derived worked examples
+reference/               ← Source material (CZ Engineering best practices)
 my-org/                  ← YOUR org context — accounts, tags, dimensions, goals
   accounts.yaml          ← AWS account IDs, names, owners, department mapping
   tags.yaml              ← Tag keys in use, naming conventions, coverage notes
