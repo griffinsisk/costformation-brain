@@ -22,11 +22,20 @@ Consult the relevant file based on what you're working on:
 | Telemetry API and stream design | `telemetry.md` + `sources.md` |
 | Performance rules and Snowflake cost impact | `performance-rules.md` ← always read before any definition |
 | Real worked examples | `examples.md` |
-| Customer org context (accounts, tags, goals) | `my-org/` directory |
+| Customer org context (accounts, tags, goals) | `my-org/index.yaml` → `my-org/` |
+
+## Common Tasks
+
+| Task | Files to read |
+|---|---|
+| Standard dimension (Environment, Team, Product) | `my-org/index.yaml`, `my-org/context.md`, `my-org/`, `performance-rules.md`, `sources.md`, `conditions-and-transforms.md`, `dimension-types.md`, `examples.md` (3, 4, 5) |
+| Allocation dimension (split shared costs) | `my-org/index.yaml`, `my-org/context.md`, `my-org/`, `performance-rules.md`, `sources.md`, `conditions-and-transforms.md`, `dimension-types.md`, `allocation-design.md`, `examples.md` (7, 8, 9) |
+| Telemetry allocation | `my-org/index.yaml`, `my-org/context.md`, `my-org/`, `performance-rules.md`, `sources.md`, `conditions-and-transforms.md`, `dimension-types.md`, `allocation-design.md`, `telemetry.md`, `sources.md`, `examples.md` (7, 8, 9) |
+| Review/debug existing dimension | `my-org/index.yaml`, `my-org/context.md`, `my-org/`, `performance-rules.md`, `sources.md`, `conditions-and-transforms.md`, `dimension-types.md` |
 
 **Before any CostFormation work:**
 1. Check if `my-org/` needs populating or refreshing (see agent instruction file for freshness rules).
-2. Read all files in `my-org/` — this is the customer's org context.
+2. Read `my-org/index.yaml` first for a compact summary, then `my-org/context.md` (always). Load full detail files as needed.
 3. Read `performance-rules.md` before generating any dimension definition.
 4. Read `allocation-design.md` before writing any Allocation Dimension.
 
