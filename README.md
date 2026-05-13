@@ -38,9 +38,40 @@ Agents won't read local files on their own — they need to be told. Copy the in
 | GitHub Copilot | `mkdir -p .github && cp costformation-brain/.github/copilot-instructions.md .github/` |
 | Codex / Gemini / other | `cp costformation-brain/AGENTS.md ./AGENTS.md` |
 
-### 4. (Optional) Add your org context
+### 4. Populate your org context
 
-The `my-org/` directory has templates for your accounts, tags, existing dimensions, and goals. Filling these in is the difference between generic output and output that uses your actual infrastructure.
+The `my-org/` directory has templates for your accounts, tags, existing dimensions, and goals. **This is the highest-impact step** — it's the difference between generic output and output that uses your actual infrastructure.
+
+#### With the CloudZero MCP (recommended)
+
+If you have the [CloudZero MCP server](https://docs.cloudzero.com/docs/ai-mcp-server) connected, the agent can pull most of this automatically. Run these prompts in order:
+
+**1. Discover your org structure and fill accounts + dimensions:**
+```
+Review my CloudZero organization — pull my accounts, existing custom dimensions,
+and top cost drivers by service and account. Write the results into
+costformation-brain/my-org/accounts.yaml and costformation-brain/my-org/dimensions.yaml
+using the template format in those files.
+```
+
+**2. Audit your tags and fill tag coverage:**
+```
+Analyze my tag coverage across all accounts — which tag keys are active, how
+consistently they're applied, and where the gaps are. Write the results into
+costformation-brain/my-org/tags.yaml using the template format.
+```
+
+**3. Add business context the API can't know:**
+
+After the agent populates the files, open `my-org/context.md` and add:
+- Which teams own which accounts
+- What dimensions you want to build and why
+- How shared costs should be split
+- Any constraints (e.g., "must match our JIRA team names for chargeback")
+
+#### Without the MCP
+
+Open the files in `my-org/`, fill in the commented templates manually. Even partial context (just your account list or tag conventions) significantly improves output.
 
 | File | What to put in it |
 |---|---|
@@ -48,10 +79,6 @@ The `my-org/` directory has templates for your accounts, tags, existing dimensio
 | `my-org/tags.yaml` | Tag keys your teams use, naming conventions, coverage gaps |
 | `my-org/dimensions.yaml` | Existing dimensions + dimensions you want to build |
 | `my-org/context.md` | Business structure, cost views you need, constraints |
-
-Each file has a commented template — fill in what's relevant, skip what isn't. Even partial context (just your account list) significantly improves output.
-
-If you have the [CloudZero MCP server](https://docs.cloudzero.com/docs/ai-mcp-server) connected, you can ask the agent to populate these from your account automatically — then add the business context the API can't know (team ownership, dimension goals, how shared costs should be split).
 
 ### 5. Start building dimensions
 

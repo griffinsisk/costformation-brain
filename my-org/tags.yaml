@@ -4,9 +4,13 @@
 # The agent uses this to pick the right Source and handle inconsistencies
 # (casing variants, legacy vs current keys, coverage gaps).
 #
-# If you have the CloudZero MCP connected, ask your agent:
-#   "Populate my-org/tags.yaml with tag keys from my CloudZero account"
-# It will pull active tag keys. You add the conventions and coverage notes.
+# Auto-populate with CloudZero MCP:
+#   "Analyze my tag coverage across all accounts — which tag keys are active,
+#    how consistently they're applied, and where the gaps are. Write the
+#    results into costformation-brain/my-org/tags.yaml using the template format."
+#
+# The agent pulls active tag keys and coverage data. You add conventions
+# and notes about casing issues or legacy keys.
 
 tags:
   # - key: environment

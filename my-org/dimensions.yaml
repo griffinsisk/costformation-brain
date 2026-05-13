@@ -4,9 +4,14 @@
 # The agent uses this to understand your current setup, avoid conflicts,
 # and write new dimensions that fit into your existing structure.
 #
-# If you have the CloudZero MCP connected, ask your agent:
-#   "Populate my-org/dimensions.yaml with my existing CloudZero dimensions"
-# It will pull dimension IDs, names, and types. You add the goals and priorities.
+# Auto-populate with CloudZero MCP:
+#   "Review my CloudZero organization — pull my accounts, existing custom
+#    dimensions, and top cost drivers by service and account. Write the
+#    results into costformation-brain/my-org/accounts.yaml and
+#    costformation-brain/my-org/dimensions.yaml using the template format."
+#
+# The agent pulls dimension IDs, names, and types. You add the goals,
+# priorities, and what you want to build next.
 
 # Dimensions that already exist in your CostFormation file
 existing:

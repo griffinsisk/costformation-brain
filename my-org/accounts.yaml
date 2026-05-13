@@ -3,9 +3,14 @@
 # List your AWS accounts with metadata the agent uses when writing dimensions.
 # This file is the source of truth for account-based rules (Department, Environment, Team mappings).
 #
-# If you have the CloudZero MCP connected, ask your agent:
-#   "Populate my-org/accounts.yaml from my CloudZero account"
-# It will pull account IDs and names automatically. You add the business context.
+# Auto-populate with CloudZero MCP:
+#   "Review my CloudZero organization — pull my accounts, existing custom
+#    dimensions, and top cost drivers by service and account. Write the
+#    results into costformation-brain/my-org/accounts.yaml and
+#    costformation-brain/my-org/dimensions.yaml using the template format."
+#
+# The agent pulls account IDs and names. You add the business context
+# (department, team, notes) that the API can't know.
 
 accounts:
   # - id: "123456789012"
