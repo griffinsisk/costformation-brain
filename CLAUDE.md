@@ -59,10 +59,10 @@ Before writing any CostFormation, check whether `costformation-brain/my-org/` ne
 4. **Check ALL signal sources for the concept the user is asking about.** Don't just look at tags. For any dimension, check:
    - **Tags** — look for relevant tag keys and their values
    - **Account names** — accounts often contain environment, team, or product signals in their names (e.g., `aws-prod-app-001`, `ENTERPRISE-DEV`, `staging-data`)
-   - **Resource names** — `CZ:Defined:ResourceSummaryDisplay` values often contain environment or product identifiers
+   - **Resource names** — query `CZ:Defined:ResourceSummaryDisplay` for patterns matching the concept (e.g., `-prod`, `-dev`, `staging`). Many resources encode environment, team, or product in their names but lack tags. Only add as a condition when the query returns matches that tags and accounts don't already cover — don't add resource name patterns just for redundancy
    - **K8s labels and namespaces** — workloads, namespaces, and labels frequently encode environment, team, or product
    - **Existing dimensions** — other dimensions may already classify the concept you need (e.g., an AccountName dimension that maps accounts to environments)
-5. **Build the dimension using every signal you find.** Combine tag matches, account matches, resource matches, and K8s matches into one dimension using `Or` conditions or multiple condition blocks per rule. A good dimension catches charges from ALL sources, not just the most obvious one.
+5. **Build the dimension for maximum coverage with minimum verbosity.** Use every signal that adds coverage — but don't add redundant conditions. If tags and accounts already catch all charges for an element, skip resource name patterns. If resources carry signals that tags miss, add them. The goal is no uncovered spend, not maximum conditions.
 6. **Only ask the customer what the data can't tell you.** Team ownership, business goals, how shared costs should be split — these require human input. Account IDs, tag keys, resource patterns, and naming conventions do not.
 
 **Do not set `DefaultValue` unless the user specifically asks for a named catch-all bucket.** CostFormation defaults to "Not in Dimension" which is sufficient.
