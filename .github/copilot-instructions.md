@@ -9,18 +9,29 @@ When writing, reviewing, or debugging CloudZero CostFormation YAML:
 
 Do NOT write CostFormation YAML from memory or general knowledge. The corpus contains CloudZero-specific syntax, performance rules from the engineering team that maintains Snowflake, and real-world patterns. General YAML knowledge will produce syntactically plausible but incorrect output.
 
+## Pre-Generation Checklist
+
+Before writing ANY CostFormation YAML, state what you read and why. Include a brief summary:
+
+- Corpus files read: which files and why
+- Org context: what you found in my-org/ (or "empty, auto-populating")
+- Data sources checked: MCP connected? Costformation file parsed? Which signal sources for this dimension?
+
+This makes compliance observable. If you skip a file, the gap is visible.
+
 ## Auto-Populate Org Context
 
 Before writing any CostFormation, check whether `costformation-brain/my-org/` needs to be populated or refreshed:
 
-Populate if empty: If accounts.yaml, tags.yaml, or dimensions.yaml contain only comments or empty arrays, auto-populate them:
+Populate if empty: If accounts.yaml, tags.yaml, or dimensions.yaml contain only comments or empty arrays (last-synced: never), auto-populate them:
 1. Parse the costformation definition file (.cz.yaml or .yaml) in the workspace — extract all accounts, tag sources, dimension IDs/types/names, and source references.
 2. If the CloudZero MCP is connected, enrich with: account names, tag coverage, cost drivers, and any dimensions not in the YAML.
 3. Write the results into the my-org/ files and update the `# last-synced:` header with the current ISO timestamp.
+4. Compute a hash of the costformation file and write it as `# source-hash: <sha256>` in each my-org/ file.
 
-Refresh if stale: If the costformation definition file has a more recent modification time than the `# last-synced` timestamp in the my-org/ files, re-populate by repeating the steps above.
+Refresh if stale: Compare the current costformation file's sha256 hash against the `# source-hash:` in the my-org/ files. If they differ, the costformation file has changed — re-populate by repeating the steps above.
 
-Never overwrite context.md. That file contains business context provided by the user. Only append to it, never replace.
+Never overwrite context.md. That file is append-only. See the guard at the top of the file.
 
 ## Use Data Before Asking Questions
 
@@ -44,4 +55,4 @@ Present what you built with a brief explanation of what you found in the data. T
 
 ## Persist Business Context
 
-When the user provides org context during conversation — team-to-account mappings, CSVs, org charts, business rules, constraints, or goals — write it to `costformation-brain/my-org/context.md` so it's available in future sessions. Append new context under the relevant section heading. Do not lose information between sessions.
+When the user provides org context during conversation — team-to-account mappings, CSVs, org charts, business rules, constraints, or goals — append it to `costformation-brain/my-org/context.md` under the relevant section heading. Do not lose information between sessions. Never replace existing content — only add to it.

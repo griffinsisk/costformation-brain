@@ -1,6 +1,8 @@
+<!-- APPEND-ONLY: Never delete or replace content in this file. Only add new content below existing sections. This file preserves business context across sessions. -->
+
 # My Organization — Business Context
 
-This file is managed by the agent and persisted across sessions. When you provide business context in conversation (team mappings, CSVs, org charts, goals, constraints), the agent writes it here so it's not lost.
+This file is append-only. The agent adds business context from conversations below. Existing content must never be removed or overwritten — only appended to.
 
 You can also edit this file directly.
 
