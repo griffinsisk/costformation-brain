@@ -10,7 +10,7 @@ Every rule must have `Type: Group` or `Type: GroupBy`.
 Dimensions:
   Environment:
     Name: Environment
-    DefaultValue: Unknown
+    DefaultValue: Unknown    # omit unless you need a named catch-all — see performance-rules.md
     Rules:
       - Type: Group
         Name: Production
@@ -37,7 +37,7 @@ Inherit structure from a parent dimension, adding transforms or overrides. Usefu
 Dimensions:
   Country:
     Name: Custom Country Dimension
-    DefaultValue: global
+    DefaultValue: global    # omit unless you need a named catch-all — see performance-rules.md
     Child: Region
     Rules:
       - Type: GroupBy
@@ -45,7 +45,7 @@ Dimensions:
         Transforms:
           - Type: Split
             Delimiter: "-"
-            Index: 0    # extracts "us" from "us-east-1"
+            Index: 1    # extracts "us" from "us-east-1"
 ```
 
 ## 3. Allocation Dimensions
