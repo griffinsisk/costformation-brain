@@ -1,0 +1,29 @@
+
+CloudZero Dimension Name (In UI),CostFormation Reference,API Reference (URL Encoding Required),Telemetry/Unit Metric Reference
+Account,Account,Account,accounts
+Billing Line Item,CZ:Defined:BillingLineItem,CZ:Defined:BillingLineItem,custom:Billing Line Item
+Cloud Provider,CloudProvider,CloudProvider,cloud_provider
+Cloud Provider Tag,"""Tag:Tag Name""","""Tag:Tag Name""",tag:Tag Name
+CloudZero Resource Name (CZRN),Resource,Resource,Not Applicable
+Custom dimension,User:Defined:DimensionVariableName,User:Defined:DimensionVariableName,custom:Dimension Name Seen In UI
+Instance Type,CZ:Defined:InstanceType,CZ:Defined:InstanceType,custom:Instance Type
+K8s Cluster,K8s:Cluster,"""K8s:Cluster:Cluster Name""",k8s_cluster:Cluster Name
+K8s Label,"""K8s:Label:Label Name""","""K8s:Label:Label Name""",k8s_label:Label Name (Need to check)
+K8s Namespace,K8s:Namespace,"""K8s:Namespace:Namespace Name""",k8s_namespace:Namespace Name
+K8s Workload,K8s:Workload,"""K8s:Workload:Workload Name""",k8s_workload:Workload Name (Need to check if possible)
+Networking Category,CZ:Defined:NetworkCategory,CZ:Defined:NetworkCategory,custom:Networking Category
+Networking Sub-Category,CZ:Defined:NetworkSubCategory,CZ:Defined:NetworkSubCategory,custom:Netowrking Sub-Category
+Payment Option,CZ:Defined:PaymentOption,CZ:Defined:PaymentOption,custom:Payment Option
+Region,Region,Region,region
+Resource,CZ:Defined:ResourceNameOnly,CZ:Defined:ResourceNameOnly,Not Applicable
+Resource Summary,CZ:Defined:ResourceSummaryDisplay,CZ:Defined:ResourceSummaryDisplay,custom:Resource Summary Display
+Resource Type,CZ:Defined:ResourceType,CZ:Defined:ResourceType,custom:Resource Type
+Service,Service,Service,services
+Service Category,CZ:Defined:Category,CZ:Defined:Category,custom:Category
+Service Detail,CZ:Defined:ServiceDetail,CZ:Defined:ServiceDetail,custom:Service Detail
+Taggable vs. Untaggable,CZ:Defined:TaggableVsUntaggable,CZ:Defined:TaggableVsUntaggable,custom:Taggable vs. Untaggable
+Usage Family,UsageFamily,UsageFamily,product_family
+GenAI Model,CZ:Defined:GenAI_Model,CZ:Defined:GenAI_Model,custom:GenAI Model
+GenAI Model Family,CZ:Defined:GenAI_Model_Family,CZ:Defined:GenAI_Model_Family,custom:GenAI Model Family
+GenAI Platform,CZ:Defined:GenAI_Platform,CZ:Defined:GenAI_Platform,custom:GenAI Platform
+GenAI Token Type,CZ:Defined:GenAI_TokenType,CZ:Defined:GenAI_TokenType,custom:GenAI Token Type

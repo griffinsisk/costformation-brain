@@ -98,6 +98,38 @@ This way, if tag values change (e.g. `web-app` → `frontend`), you update the d
 }
 ```
 
+## Telemetry Filter Keys
+
+When constructing telemetry record `filter` objects, use these keys to reference CloudZero dimensions. The filter key format differs from CostFormation source syntax.
+
+| Dimension Type | CostFormation Source | Telemetry Filter Key |
+|---|---|---|
+| Account | `Account` | `accounts` |
+| Service | `Service` | `services` |
+| Region | `Region` | `region` |
+| Cloud Provider | `CloudProvider` | `cloud_provider` |
+| Usage Family | `UsageFamily` | `product_family` |
+| Tags | `Tag:<TagName>` | `tag:<TagName>` |
+| K8s Cluster | `K8s:Cluster` | `k8s_cluster:<ClusterName>` |
+| K8s Namespace | `K8s:Namespace` | `k8s_namespace:<NamespaceName>` |
+| K8s Workload | `K8s:Workload` | `k8s_workload:<WorkloadName>` |
+| K8s Label | `K8s:Label:<LabelName>` | `k8s_label:<LabelName>` |
+| Custom dimension | `User:Defined:<DimId>` | `custom:<Dimension UI Name>` |
+| CZ built-in | `CZ:Defined:<DimId>` | `custom:<Dimension UI Name>` |
+
+Note: the telemetry filter key for custom and CZ built-in dimensions uses the **UI display name** (the `Name:` field), not the DimensionId. See `sources.md` for the complete mapping.
+
+Example filter using multiple dimension types:
+```json
+{
+  "filter": {
+    "custom:ApplicationTelemetryTarget": ["WebApp"],
+    "tag:environment": ["prod"],
+    "accounts": ["123456789012"]
+  }
+}
+```
+
 ## Common Telemetry Sources
 
 | Use Case | Signal to Send | Typical Source |
