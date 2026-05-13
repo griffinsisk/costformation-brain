@@ -9,7 +9,7 @@ Dimensions:
     Type: Grouping                        # Grouping (default) or Allocation
     Hide: false                           # Hide from Explorer but allow as source? (default: false)
     Disable: false                        # Stop computing entirely? (default: false)
-    DefaultValue: Other                   # Only on top-level Explorer dims — see performance-rules.md
+    DefaultValue: Other                   # Omit unless you need a named bucket — defaults to "Not in Dimension"
     Child: Service                        # Next drill-down dimension in Explorer (optional)
     Override: CZ:Defined:<DimensionId>    # Replace a built-in CZ dimension (optional)
     Source: Account                       # Default source inherited by all rules (optional)

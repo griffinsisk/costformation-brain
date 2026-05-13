@@ -29,8 +29,16 @@ When the user asks you to create or modify a dimension, do NOT ask questions the
 1. Query the CloudZero MCP first (if connected) — pull accounts, tags, existing dimensions, cost data, tag coverage. Look at what's actually in the environment.
 2. Parse the costformation file — see what dimensions already exist, what sources and patterns are used, what naming conventions are in place.
 3. Read `costformation-brain/my-org/` — check for any persisted org context from prior sessions.
-4. Infer the answer from the data. If the user asks for an "Environment dimension," look for environment-related tags (env, environment, Environment), account naming patterns, and existing dimension references. Build the dimension from what you find.
-5. Only ask the customer what the data can't tell you. Team ownership, business goals, how shared costs should be split — these require human input. Account IDs, tag keys, and naming patterns do not.
+4. Check ALL signal sources for the concept the user is asking about. Don't just look at tags. For any dimension, check:
+   - Tags — look for relevant tag keys and their values
+   - Account names — accounts often contain environment, team, or product signals in their names (e.g., aws-prod-app-001, ENTERPRISE-DEV, staging-data)
+   - Resource names — CZ:Defined:ResourceSummaryDisplay values often contain environment or product identifiers
+   - K8s labels and namespaces — workloads, namespaces, and labels frequently encode environment, team, or product
+   - Existing dimensions — other dimensions may already classify the concept you need
+5. Build the dimension using every signal you find. Combine tag matches, account matches, resource matches, and K8s matches into one dimension. A good dimension catches charges from ALL sources, not just the most obvious one.
+6. Only ask the customer what the data can't tell you. Team ownership, business goals, how shared costs should be split — these require human input. Account IDs, tag keys, resource patterns, and naming conventions do not.
+
+Do not set DefaultValue unless the user specifically asks for a named catch-all bucket. CostFormation defaults to "Not in Dimension" which is sufficient.
 
 Present what you built with a brief explanation of what you found in the data. The customer confirms or adjusts — they shouldn't have to teach the agent things the MCP already knows.
 

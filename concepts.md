@@ -11,7 +11,7 @@
 | **Transform** | A mutation applied to a source value before matching |
 | **Allocation Dimension** | A special dimension that splits charges across elements proportionally |
 | **Telemetry Stream** | Usage data sent via API used to weight allocation proportions |
-| **DefaultValue** | The element assigned when no rule matches — only set on top-level Explorer dimensions (see `performance-rules.md`) |
+| **DefaultValue** | The element assigned when no rule matches. Omit unless you need a specific named bucket — CostFormation defaults to "Not in Dimension" (see `performance-rules.md`) |
 | **Hide** | Whether the dimension appears in Explorer UI |
 | **Disable** | Whether the dimension is still computed but hidden everywhere |
 

@@ -170,7 +170,7 @@ Values can have alternatives — `cache` matches `redis` and `memcached` as sub-
 | `Type` | `Allocation` or `Grouping` | Dimension type (optional, default: `Grouping`) |
 | `Hide` | true/false | Hide from Explorer UI but allow as source (default: false) |
 | `Disable` | true/false | Stop computing entirely (default: false) |
-| `DefaultValue` | string | Element for unmatched charges — only set on top-level Explorer dimensions |
+| `DefaultValue` | string | Element for unmatched charges. Omit unless you need a specific named bucket — defaults to "Not in Dimension" |
 | `Child` | DimensionId | Next drill-down dimension in Explorer |
 | `Override` | `CZ:Defined:<DimensionId>` | Replace a built-in CZ dimension with your own |
 | `Source` / `Sources` | string / list | Default source(s) inherited by all rules |

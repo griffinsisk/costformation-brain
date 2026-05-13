@@ -38,7 +38,7 @@ Consult the relevant file based on what you're working on:
 ALWAYS:
 - Use full prefixed Source syntax: `CZ:Defined:`, `User:Defined:`, `Tag:`
 - Prefer `HasValue: false` over `DefaultValue` to avoid processing every line item (see `performance-rules.md`)
-- Only set `DefaultValue` when the dimension is a **top-level Explorer filter** where users expect a catch-all bucket
+- Omit `DefaultValue` unless you specifically need a named catch-all — CostFormation defaults to "Not in Dimension" which is sufficient for most cases
 - Prefer `CZ:Defined:ResourceSummaryDisplay` over `ResourceId` for resource matching
 - Use `Equals`, `BeginsWith`, or `Contains` before reaching for `Matches` (regex)
 - Every rule must have `Type: Group`, `Type: GroupBy`, or `Type: Metadata` — omitting Type is invalid
@@ -57,4 +57,4 @@ NEVER:
 - Send telemetry with non-UTC or non-hourly-aligned timestamps
 - Reference a `User:Defined:` dimension that hasn't been published yet
 - Use overly broad `Matches` (regex) patterns on high-cardinality sources
-- Set `DefaultValue` on hidden/helper dimensions — it forces processing every line item for no user benefit
+- Set `DefaultValue` unless specifically needed — CostFormation defaults to "Not in Dimension" which is sufficient. DefaultValue forces processing every line item

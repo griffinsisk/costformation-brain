@@ -65,13 +65,13 @@ If two streams cover the same resources for the same time period, the lower-prio
 
 `DefaultValue` forces the dimension to process **every line item** in billing data, even those that don't match any rule. This directly increases Snowflake compute and storage.
 
-**When to set `DefaultValue`:**
-- The dimension is a **top-level Explorer filter** where users expect a catch-all bucket (e.g., `DefaultValue: Other`)
-- The dimension is used in `SpendToAllocate` and you need unmatched charges to land somewhere
+**Default behavior without `DefaultValue`:** Unmatched charges show as **"Not in Dimension"** in Explorer. This is self-explanatory and sufficient for most dimensions.
 
-**When to omit `DefaultValue` (preferred for performance):**
-- Hidden/helper dimensions (`Hide: true`) used only as references by other dimensions
-- Dimensions where you only care about matched charges
+**Only set `DefaultValue` when:**
+- You need a specific named bucket (e.g., `DefaultValue: Shared` to explicitly label unmatched spend)
+- The dimension is used in `SpendToAllocate` and you need unmatched charges to land in a named element
+
+**Omit `DefaultValue` (preferred for performance) in all other cases.** Setting it forces the dimension to process every line item in billing data.
 
 **Use `HasValue: false` instead** when other dimensions need to reference "charges not covered by this dimension":
 
