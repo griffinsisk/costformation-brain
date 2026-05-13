@@ -56,7 +56,7 @@ If the MCP isn't connected when you start building, the agent will let you know 
 On first use, the agent automatically:
 - Parses your costformation file to extract accounts, tags, dimensions, and source references
 - Enriches with CloudZero MCP data if connected (account names, tag coverage, cost drivers)
-- Writes the results to `my-org/` so the context persists across sessions
+- Writes the results to `my-org/` and generates a compact `my-org/index.yaml` summary so context persists and loads efficiently across sessions
 
 When you pull a new version of your costformation file, the agent detects the change and refreshes the org context automatically.
 
@@ -77,7 +77,7 @@ curl -X POST -H "Authorization: Bearer $CZ_API_KEY" \
 
 ## How It Works
 
-The instruction file you copied in step 3 forces the agent to read `SKILL.md` before writing any CostFormation YAML. That file contains non-negotiable rules (source prefixes, performance constraints, allocation design) and a routing table that points to 10 corpus files covering syntax, conditions, transforms, telemetry, allocation design, and real-world examples.
+The instruction file you copied in step 3 forces the agent to read `SKILL.md` before writing any CostFormation YAML. That file contains non-negotiable rules (source prefixes, performance constraints, allocation design) and a routing table that points to 9 corpus files covering syntax, conditions and transforms, telemetry, allocation design, and real-world examples.
 
 The `my-org/` directory stores your org-specific context. It's auto-populated from your costformation file and the CloudZero MCP — you don't need to fill it in manually. The agent refreshes it whenever you pull a new costformation version.
 
