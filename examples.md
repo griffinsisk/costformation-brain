@@ -15,7 +15,6 @@ Dimensions:
     Hide: true
     Child: Service
     Source: Account
-    DefaultValue: Uncategorized
     Rules:
       - Type: Group
         Name: Production (389949659813)
@@ -89,15 +88,14 @@ Dimensions:
 
 ---
 
-## Example 3: Environment with Multi-Source K8s + Tag Fallback
+## Example 3: Environment with Multi-Source Matching (Tags + Accounts + Resources + K8s)
 
-Pattern: classify charges by environment using multiple K8s labels and tags with different naming conventions, plus a GroupBy catch-all.
+Pattern: classify charges by environment using every available signal — tags, account names, resource names, and K8s labels. A good dimension catches charges from ALL sources.
 
 ```yaml
 Dimensions:
   Environment:
     Name: Environment
-    DefaultValue: Unknown
     Rules:
       - Type: Group
         Name: production
@@ -114,6 +112,8 @@ Dimensions:
             Contains:
               - prod
               - Prod
+          - Source: CZ:Defined:ResourceSummaryDisplay
+            Contains: "-prod"
       - Type: Group
         Name: staging
         Conditions:
@@ -126,6 +126,8 @@ Dimensions:
               - Tag:env
             Contains:
               - stag
+          - Source: CZ:Defined:ResourceSummaryDisplay
+            Contains: "-staging"
       - Type: Group
         Name: sandbox
         Conditions:
@@ -154,10 +156,11 @@ Dimensions:
 ```
 
 **Why this works:**
+- **Multiple signal types per rule** — tags, account IDs, AND resource names all feed into the same environment element. Charges are caught regardless of which signal is present.
+- `CZ:Defined:ResourceSummaryDisplay` catches resources named `rg-insightapi-prod`, `czbg-cluster-prod`, etc. that may not have environment tags but carry environment signals in their names
 - `Sources` (plural) checks multiple K8s labels and tags in one condition — no need for nested `Or`
 - `CoalesceSources: true` on the GroupBy catch-all picks the first non-null value across all listed sources
-- `Contains` handles inconsistent tag values (`production`, `prod`, `Prod`)
-- Explicit Group rules first capture known environments; GroupBy at the end catches any new environment values automatically
+- No `DefaultValue` — CostFormation defaults to "Not in Dimension" which is sufficient
 
 ---
 
