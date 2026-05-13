@@ -82,9 +82,8 @@ The agent will read SKILL.md, check your my-org/ context, consult performance-ru
 
 ### 5. Publish your changes
 
-**With MCP:** Ask the agent to publish your updated CostFormation file through the CloudZero API.
+The CloudZero MCP is read-only — publishing requires the API directly.
 
-**With curl:**
 ```bash
 curl -X POST -H "Authorization: Bearer $CZ_API_KEY" \
   -H "Content-Type: application/yaml" \
