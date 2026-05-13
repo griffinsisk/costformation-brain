@@ -12,16 +12,14 @@ Everything CostFormation computes is stored and reprocessed in Snowflake. Bad pa
 
 ```yaml
 # BAD
-- Contains:
-    Source: ResourceId
-    Value: "payments"
+- Source: ResourceId
+  Contains: "payments"
 ```
 
 ```yaml
 # GOOD — use CloudZero's normalized resource summary
-- Contains:
-    Source: CZ:Defined:ResourceSummaryDisplay
-    Value: "payments"
+- Source: CZ:Defined:ResourceSummaryDisplay
+  Contains: "payments"
 ```
 
 `CZ:Defined:ResourceSummaryDisplay` groups logically related resources together, dramatically reducing cardinality and improving Explorer performance.
@@ -44,7 +42,7 @@ Everything CostFormation computes is stored and reprocessed in Snowflake. Bad pa
   Contains: "payments"
 ```
 
-Use `Equals` → `StartsWith`/`BeginsWith`/`EndsWith` → `Contains` → `Matches` in that order of preference.
+Use `Equals` → `BeginsWith`/`EndsWith` → `Contains` → `Matches` in that order of preference.
 
 ---
 

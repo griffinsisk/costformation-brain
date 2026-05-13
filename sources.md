@@ -27,22 +27,41 @@ Canonical list of all CloudZero dimensions with their CostFormation source synta
 
 ### Core Billing Dimensions
 
-| UI Name | CostFormation Source | API Reference | Telemetry Filter Key |
+| UI Name | CostFormation Source | Telemetry Filter Key | Notes |
 |---|---|---|---|
-| Account | `Account` | `Account` | `accounts` |
-| Service | `Service` | `Service` | `services` |
-| Region | `Region` | `Region` | `region` |
-| Usage Family | `UsageFamily` | `UsageFamily` | `product_family` |
-| Cloud Provider | `CloudProvider` | `CloudProvider` | `cloud_provider` |
+| Account | `Account` | `accounts` | AWS account ID, Azure subscription, GCP project |
+| Service | `Service` | `services` | Cloud service codes |
+| Region | `Region` | `region` | |
+| Usage Family | `UsageFamily` | `product_family` | |
+| Usage Type | `UsageType` | N/A | Usage details of billing line item |
+| Cloud Provider | `CloudProvider` | `cloud_provider` | AWS, GCP, Azure, etc. |
+| Operation | `Operation` | N/A | Specific cloud operation |
+| Product Family | `ProductFamily` | N/A | E.g. Compute Instance, NAT Gateway |
+| Pricing Term | `PricingTerm` | N/A | On-demand, reserved, spot |
+| Line Item Type | `LineItemType` | N/A | Type of billing charge |
+| Payer Account | `PayerAccount` | N/A | Management/payer account |
+| Description | `Description` | N/A | Detailed billing text field |
+| Usage Day | `UsageDay` | N/A | ISO-formatted date for line item |
+| Transfer Type | `TransferType` | N/A | Data transfer type |
+| Request Type | `RequestType` | N/A | E.g. CloudFront request types |
+| Invoice ID | `InvoiceID` | N/A | |
+| Billing Connection ID | `BillingConnectionID` | N/A | Links charges to billing connection |
+| Committed Use Subscription | `CommittedUseSubscription` | N/A | RI/Savings Plan details |
+| Pricing Unit | `PricingUnit` | N/A | Unit of measurement |
+| Pricing Units | `PricingUnits` | N/A | Unit of measure for pricing (GB, hours) |
 
 ### CloudZero Built-In Dimensions (`CZ:Defined:`)
 
 | UI Name | CostFormation Source | Telemetry Filter Key | Notes |
 |---|---|---|---|
 | Resource Summary | `CZ:Defined:ResourceSummaryDisplay` | `custom:Resource Summary Display` | **Preferred for resource matching** — groups related resources, low cardinality |
+| Resource Summary ID | `CZ:Defined:ResourceSummaryID` | N/A | Grouped resources with CZRNs |
+| Resource Display | `CZ:Defined:ResourceDisplay` | N/A | Native resource IDs (not CZRNs) |
 | Resource (name only) | `CZ:Defined:ResourceNameOnly` | N/A | Just the resource name without account/region context |
+| Service Display | `CZ:Defined:ServiceDisplay` | N/A | Service display values |
 | Service Detail | `CZ:Defined:ServiceDetail` | `custom:Service Detail` | More granular than Service |
 | Service Category | `CZ:Defined:Category` | `custom:Category` | E.g. "Non-Usage: SavingsPlanRecurringFee" |
+| Elasticity | `CZ:Defined:Elasticity` | N/A | Storage vs Variable Costs |
 | Instance Type | `CZ:Defined:InstanceType` | `custom:Instance Type` | EC2/RDS instance family and size |
 | Resource Type | `CZ:Defined:ResourceType` | `custom:Resource Type` | |
 | Billing Line Item | `CZ:Defined:BillingLineItem` | `custom:Billing Line Item` | |
@@ -73,7 +92,7 @@ Tag:<TagName>
 tag:<TagName>                  # e.g. tag:environment
 ```
 
-Tag keys are **case-sensitive**. Always use `Lowercase` transforms when matching user-applied tags.
+Tag keys are **case-sensitive**. Always use `Lower` transforms when matching user-applied tags.
 
 ### Kubernetes Dimensions
 
@@ -83,8 +102,24 @@ Tag keys are **case-sensitive**. Always use `Lowercase` transforms when matching
 | K8s Namespace | `K8s:Namespace` | `K8s:Namespace:<NamespaceName>` | `k8s_namespace:<NamespaceName>` |
 | K8s Workload | `K8s:Workload` | `K8s:Workload:<WorkloadName>` | `k8s_workload:<WorkloadName>` |
 | K8s Label | `K8s:Label:<LabelName>` | `K8s:Label:<LabelName>` | `k8s_label:<LabelName>` |
+| K8s Pod | `K8s:Pod` | N/A | N/A |
 
 Note: API references for K8s dimensions require the specific name (e.g. `K8s:Namespace:production`). CostFormation sources do not — `K8s:Namespace` matches across all namespaces.
+
+**K8s Label format variants:**
+```yaml
+# Pod labels (most common)
+K8s:Label:<label-key>
+
+# Non-pod resource labels (e.g. node, service)
+K8s:Label:<resource-type>:<label-key>
+
+# Pod annotations
+K8s:Label:annotation:<label-key>
+
+# Non-pod resource annotations
+K8s:Label:<resource-type>:annotation:<label-key>
+```
 
 ### User-Defined Dimensions
 

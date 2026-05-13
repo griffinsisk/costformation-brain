@@ -17,7 +17,7 @@ Consult the relevant file based on what you're working on:
 | File structure and YAML skeleton | `file-structure.md` |
 | Source prefixes and available sources | `sources.md` |
 | Writing conditions (Equals, Contains, And/Or…) | `conditions.md` |
-| Applying transforms (Lowercase, Split…) | `transforms.md` |
+| Applying transforms (Lower, Split, Normalize…) | `transforms.md` |
 | Choosing and writing dimension types | `dimension-types.md` |
 | Allocation dimension design and anti-patterns | `allocation-design.md` |
 | Telemetry API and stream design | `telemetry.md` |
@@ -40,9 +40,9 @@ ALWAYS:
 - Prefer `HasValue: false` over `DefaultValue` to avoid processing every line item (see `performance-rules.md`)
 - Only set `DefaultValue` when the dimension is a **top-level Explorer filter** where users expect a catch-all bucket
 - Prefer `CZ:Defined:ResourceSummaryDisplay` over `ResourceId` for resource matching
-- Use `Equals`, `StartsWith`/`BeginsWith`, or `Contains` before reaching for `Matches` (regex)
-- Every rule must have `Type: Group` or `Type: GroupBy` — omitting Type is invalid
-- Add `Lowercase` transforms when matching user-defined tags
+- Use `Equals`, `BeginsWith`, or `Contains` before reaching for `Matches` (regex)
+- Every rule must have `Type: Group`, `Type: GroupBy`, or `Type: Metadata` — omitting Type is invalid
+- Add `Lower` transforms when matching user-defined tags
 - Scope `SpendToAllocate` as narrowly as possible in Allocation Dimensions
 - Use a common hidden "Spend to Allocate" dimension when multiple allocation dimensions exist — prevents overlap
 - Create hidden base dimensions for shared logic — reference them via `User:Defined:` instead of copy-pasting conditions

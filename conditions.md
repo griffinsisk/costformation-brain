@@ -22,13 +22,9 @@ All conditions are flat — `Source` and the operator are siblings, not nested u
     - K8s:Label:environment
   Equals: production
 
-# Starts with prefix
+# Begins with prefix
 - Source: UsageType
-  StartsWith: "USE2-"
-
-# Begins with (alias for StartsWith)
-- Source: User:Defined:AccountName
-  BeginsWith: "AWS - Security"
+  BeginsWith: "USE2-"
 
 # Ends with suffix
 - Source: Tag:env
@@ -44,7 +40,7 @@ All conditions are flat — `Source` and the operator are siblings, not nested u
     - payments
     - billing
 
-# Regex match (Matches) — use sparingly, see performance-rules.md
+# Regex match (Matches) — uses Snowflake REGEXP_LIKE syntax. Use sparingly, see performance-rules.md
 - Source: Tag:team
   Matches: "^(payments|billing).*$"
 
@@ -77,7 +73,7 @@ All conditions are flat — `Source` and the operator are siblings, not nested u
     - Source: Service
       Equals: AmazonS3
     - Source: Tag:app
-      StartsWith: "payments"
+      BeginsWith: "payments"
 
 # OR — any condition must be true
 - Or:
@@ -130,13 +126,18 @@ Rules:
   Before: "M"              # matches A-L
 
 - Source: Tag:department
+  BeforeOrEquals: "M"      # matches A-M
+
+- Source: Tag:department
+  After: "M"               # matches N-Z
+
+- Source: Tag:department
   AfterOrEquals: "M"       # matches M-Z
 
-# Date range filtering
-- Source: CZ:Defined:BillingLineItem
-  ForDateRange:
-    Start: "2024-01-01"
-    End: "2024-03-31"
+# Date range filtering (inclusive, uses From/Until)
+- ForDateRange:
+    From: "2024-01-01"
+    Until: "2024-03-31"
 ```
 
 ## CoalesceSources
@@ -156,6 +157,6 @@ When using `Sources` (plural), `CoalesceSources: true` picks the first non-null 
 
 Prefer in this order for performance:
 1. `Equals` — exact, indexed
-2. `StartsWith` / `BeginsWith` / `EndsWith` — prefix/suffix, efficient
+2. `BeginsWith` / `EndsWith` — prefix/suffix, efficient
 3. `Contains` — substring scan, acceptable
-4. `Matches` (regex) — row-by-row evaluation, no index benefit — last resort only
+4. `Matches` (regex) — row-by-row, Snowflake `REGEXP_LIKE` — last resort only

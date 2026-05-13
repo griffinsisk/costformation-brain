@@ -56,19 +56,30 @@ Splits shared costs proportionally across elements. Two subtypes:
 
 Splits based on another dimension's element spend ratios. No telemetry required.
 
+**AllocationMethod options:** `Proportional` (by spend ratio), `Even` (equal split), `Fixed` (fixed weight).
+
 ```yaml
 Dimensions:
   SharedInfraByProduct:
     Type: Allocation
     Name: Shared Infra Allocated by Product
     AllocateByRules:
+      AllocationMethod: Proportional
       SpendToAllocate:
+        Source: User:Defined:SharedRDS
         Conditions:
-          - Source: Account
-            Equals: "shared-infra-account-id"
+          - Equals: Shared Data Lake
       AcrossElements:
-        Source: User:Defined:Product
+        GroupBy:
+          Source: User:Defined:Product
+          Conditions:
+            - Equals:
+              - Product A
+              - Product B
+              - Product C
 ```
+
+`AcrossElements` uses shorthand syntax: `GroupBy`, `Groups`, or `Rules` — not a bare `Source`.
 
 ### 3b. Telemetry-Based Allocation
 
@@ -110,6 +121,61 @@ Dimensions:
 ```
 
 See `allocation-design.md` for the full set of allocation design rules including the common "Spend to Allocate" dimension pattern, anti-overlap, and anti-layering.
+
+### 3d. Rate-Based Telemetry Allocation
+
+Applies a fixed rate multiplier to telemetry-based allocation. Unallocated portions go to a named default element.
+
+```yaml
+Dimensions:
+  RatedAllocation:
+    Type: Allocation
+    AllocateByStreams:
+      Rate:
+        Type: Fixed
+        Value: 1.23
+        DefaultElement: "Unallocated Cost"
+      Streams:
+        - usage-stream-v1
+```
+
+## 4. Metadata Rule Type
+
+Groups elements based on case-insensitive substring matching. Values are normalized (special characters become dashes). Useful for categorizing resources by naming patterns.
+
+```yaml
+Dimensions:
+  ResourceCategory:
+    Name: Resource Category
+    Rules:
+      - Type: Metadata
+        Source: CZ:Defined:ResourceSummaryDisplay
+        Values:
+          - database
+          - cache:
+              - redis
+              - memcached
+          - queue:
+              - sqs
+              - rabbitmq
+```
+
+Values can have alternatives — `cache` matches `redis` and `memcached` as sub-patterns.
+
+## Dimension-Level Properties
+
+| Property | Values | Description |
+|---|---|---|
+| `Name` | string | Display name in Explorer (optional, defaults to DimensionId) |
+| `Type` | `Allocation` or `Grouping` | Dimension type (optional, default: `Grouping`) |
+| `Hide` | true/false | Hide from Explorer UI but allow as source (default: false) |
+| `Disable` | true/false | Stop computing entirely (default: false) |
+| `DefaultValue` | string | Element for unmatched charges — only set on top-level Explorer dimensions |
+| `Child` | DimensionId | Next drill-down dimension in Explorer |
+| `Override` | `CZ:Defined:<DimensionId>` | Replace a built-in CZ dimension with your own |
+| `Source` / `Sources` | string / list | Default source(s) inherited by all rules |
+| `CoalesceSources` | true/false | Use first non-null source (default: false) |
+| `Transforms` | list | Default transforms inherited by all rules |
 
 ## Dimension Studio vs. CostFormation YAML
 

@@ -4,18 +4,37 @@ All Custom Dimensions live in a **single YAML file** called the CostFormation De
 
 ```yaml
 Dimensions:
-  <DimensionId>:        # This IS the dimension's ID for API/CostFormation references
-    Name: Human Readable Name
-    Hide: false          # Show in Explorer? Default false (visible)
-    Disable: false       # Stop computing? Default false
-    DefaultValue: Other  # Only set on top-level Explorer dimensions. Omit on hidden/helper dims — see performance-rules.md
+  <DimensionId>:                          # This IS the dimension's ID for Source references and API
+    Name: Human Readable Name             # Display name in Explorer (optional, defaults to DimensionId)
+    Type: Grouping                        # Grouping (default) or Allocation
+    Hide: false                           # Hide from Explorer but allow as source? (default: false)
+    Disable: false                        # Stop computing entirely? (default: false)
+    DefaultValue: Other                   # Only on top-level Explorer dims — see performance-rules.md
+    Child: Service                        # Next drill-down dimension in Explorer (optional)
+    Override: CZ:Defined:<DimensionId>    # Replace a built-in CZ dimension (optional)
+    Source: Account                       # Default source inherited by all rules (optional)
+    CoalesceSources: false                # Use first non-null source (optional)
+    Transforms:                           # Default transforms inherited by all rules (optional)
+      - Type: Lower
     Rules:
-      - Name: RuleName
-        Value: ElementName
+      - Type: Group                       # Required: Group, GroupBy, or Metadata
+        Name: ElementName
         Conditions:
-          - ...
-  <DimensionId2>:
-    ...
+          - Equals: "value"
+
+  # Allocation dimension example
+  <AllocationDimId>:
+    Type: Allocation
+    Name: Split Shared Costs
+    AllocateByRules:                      # or AllocateByStreams
+      AllocationMethod: Proportional      # Proportional, Even, or Fixed
+      SpendToAllocate:
+        Conditions:
+          - Source: Service
+            Equals: AmazonRDS
+      AcrossElements:
+        GroupBy:
+          Source: User:Defined:Product
 ```
 
 ## Critical Facts
