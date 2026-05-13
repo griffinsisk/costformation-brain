@@ -5,7 +5,7 @@ Telemetry powers `AllocateByStreams` dimensions. You send usage signals to Cloud
 ## How the Pipeline Works
 
 1. **Build a target dimension** — a standard dimension (or group within one) that defines the elements you want to allocate costs to. E.g., an Environment dimension with Production, Staging, Development elements. This must exist first.
-2. **Send telemetry records** — usage metrics (API calls, bytes, tokens, etc.) that reference the target dimension's elements via `element-name`. The `filter` narrows which charges each record applies to. The proportions tell CloudZero how to split.
+2. **Send telemetry records** — usage metrics (API calls, bytes, tokens, etc.) that reference the target dimension's elements via `element_name`. The `filter` narrows which charges each record applies to. The proportions tell CloudZero how to split.
 3. **This creates a stream** — the stream name in the API URL becomes a source you reference in CostFormation.
 4. **Build an allocation dimension** — uses `AllocateByStreams` with your stream. It splits shared costs back to the target elements proportionally based on the telemetry signal.
 5. **Combine with a final dimension** — use `GroupBy Source: User:Defined:<AllocationDim>` to merge the allocated shared costs with direct costs into one unified view.
@@ -29,26 +29,32 @@ Content-Type: application/json
   "records": [
     {
       "timestamp": "2024-01-15T14:00:00Z",
-      "granularity": "HOURLY",
+      "granularity": "DAILY",
       "filter": {
-        "custom:Customer": ["acme-corp"],
-        "tag:environment": ["prod"]
+        "custom:Shared RDS": ["Shared Data Lake"]
       },
-      "element-name": "acme-corp",
-      "value": 142.5
+      "element_name": "Email",
+      "telemetry-stream": "rds-writes-by-product",
+      "value": "100045"
     }
   ]
 }
 ```
 
-- `element-name` — the target element in the allocation dimension (what the cost gets allocated to)
-- `filter` — narrows which charges this record applies to, using telemetry filter keys (see `sources.md`)
+| Field | Required | Description |
+|---|---|---|
+| `timestamp` | Yes | ISO 8601 format, hourly-aligned UTC |
+| `granularity` | Yes | `HOURLY`, `DAILY`, or `MONTHLY` |
+| `filter` | Yes | Telemetry filter keys (see `sources.md`) mapping dimension names to element arrays |
+| `element_name` | Yes | The target element in the allocation dimension — must exactly match an element name |
+| `value` | Yes | The usage metric (string-encoded number). CloudZero normalizes proportionally within each time window |
+| `telemetry-stream` | No | Names the stream in the record itself. Optional if the stream name is in the API URL |
 
 ## Rules for Telemetry Records
 
 1. **Timestamps must be hourly-aligned UTC** — minutes and seconds must be `00:00`. Example: `2024-01-15T14:00:00Z` ✅ — `2024-01-15T14:23:11Z` ❌
 2. **Default to `HOURLY` granularity** — matches CloudZero's billing reprocessing cadence
-3. **`element-name` must exactly match element names** in your allocation dimension — case-sensitive
+3. **`element_name` must exactly match element names** in your allocation dimension — case-sensitive
 4. **`filter` uses telemetry filter keys** (see `sources.md`) — NOT CostFormation source syntax. E.g., `"custom:Environment"` not `"User:Defined:Environment"`
 5. **Send proportions, not absolute values** — CloudZero normalizes within each time window. `{a:100, b:200}` is equivalent to `{a:1, b:2}`
 5. **Telemetry must arrive before nightly reprocessing** — aim to send within 2 hours of the period it covers. Late data triggers expensive retroactive reprocessing
@@ -95,7 +101,7 @@ Telemetry records reference the **dimension element**, not the raw tag:
     "custom:ApplicationTelemetryTarget": ["WebApp"],
     "tag:environment": ["prod"]
   },
-  "element-name": "team-alpha",
+  "element_name": "team-alpha",
   "value": "250000000"
 }
 ```
@@ -109,7 +115,7 @@ This way, if tag values change (e.g. `web-app` → `frontend`), you update the d
   "filter": {
     "tag:application": ["web-app", "api"]
   },
-  "element-name": "team-alpha",
+  "element_name": "team-alpha",
   "value": "250000000"
 }
 ```
@@ -165,7 +171,7 @@ records = [
         "timestamp": hour_utc.strftime("%Y-%m-%dT%H:00:00Z"),
         "granularity": "HOURLY",
         "filter": {"custom:Customer": [customer_id]},
-        "element-name": customer_id,
+        "element_name": customer_id,
         "value": request_count,
     }
     for customer_id, request_count in hourly_counts.items()

@@ -339,7 +339,7 @@ Dimensions:
             Equals: messaging
 ```
 
-**Step 2: Send telemetry** — usage metrics that reference the target elements. The `element-name` must match the element names in the target dimension exactly:
+**Step 2: Send telemetry** — usage metrics that reference the target elements. The `element_name` must match the element names in the target dimension exactly:
 
 ```python
 import requests
@@ -349,7 +349,7 @@ records = [
         "timestamp": hour_utc.strftime("%Y-%m-%dT%H:00:00Z"),
         "granularity": "HOURLY",
         "filter": {"custom:Product": [product_name]},
-        "element-name": product_name,
+        "element_name": product_name,
         "value": bytes_received,
     }
     for product_name, bytes_received in hourly_log_bytes.items()
@@ -400,7 +400,7 @@ The `GroupBy` at the end pulls in allocated shared costs. Since the allocation u
 
 **Why this works:**
 - The target dimension (Product) defines what elements exist — the allocation references them
-- `element-name` in telemetry records maps directly to those elements
+- `element_name` in telemetry records maps directly to those elements
 - The stream becomes a source you reference in CostFormation, just like a tag or account
 - `GroupBy Source: User:Defined:<AllocationDim>` merges allocated costs with direct costs
 - Stream names include a version suffix (`-v2`) — safe to evolve the signal without breaking existing allocations
