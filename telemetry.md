@@ -34,7 +34,6 @@ Content-Type: application/json
         "custom:Shared RDS": ["Shared Data Lake"]
       },
       "element_name": "Email",
-      "telemetry-stream": "rds-writes-by-product",
       "value": "100045"
     }
   ]
@@ -48,7 +47,6 @@ Content-Type: application/json
 | `filter` | Yes | Telemetry filter keys (see `sources.md`) mapping dimension names to element arrays |
 | `element_name` | Yes | The target element in the allocation dimension — must exactly match an element name |
 | `value` | Yes | The usage metric (string-encoded number). CloudZero normalizes proportionally within each time window |
-| `telemetry-stream` | No | Names the stream in the record itself. Optional if the stream name is in the API URL |
 
 ## Rules for Telemetry Records
 
