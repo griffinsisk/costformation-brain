@@ -7,7 +7,7 @@
 | **Charge** | A single billing line item from a cloud provider |
 | **Rule** | A named condition block that assigns charges to an element |
 | **Source** | The billing field or tag being evaluated |
-| **Condition** | A filter expression (Match, StartsWith, Regex, And, Or, Not…) |
+| **Condition** | A filter expression (Equals, Contains, StartsWith, And, Or, Not…) |
 | **Transform** | A mutation applied to a source value before matching |
 | **Allocation Dimension** | A special dimension that splits charges across elements proportionally |
 | **Telemetry Stream** | Usage data sent via API used to weight allocation proportions |

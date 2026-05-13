@@ -4,28 +4,29 @@
 
 Assigns each charge to exactly one element. Used for filtering and grouping in Explorer and Views.
 
+Every rule must have `Type: Group` or `Type: GroupBy`.
+
 ```yaml
 Dimensions:
   Environment:
     Name: Environment
     DefaultValue: Unknown
     Rules:
-      - Name: Production
-        Value: Production
+      - Type: Group
+        Name: Production
         Conditions:
           - Or:
-            - Match:
-                Source: Account
-                Values: ["111111111111", "222222222222"]
-            - Match:
-                Source: Tag:env
-                Value: production
-      - Name: Staging
-        Value: Staging
+            - Source: Account
+              Equals:
+                - "111111111111"
+                - "222222222222"
+            - Source: Tag:env
+              Equals: production
+      - Type: Group
+        Name: Staging
         Conditions:
-          - Match:
-              Source: Tag:env
-              Value: staging
+          - Source: Tag:env
+            Equals: staging
 ```
 
 ## 2. Child Dimensions
@@ -62,10 +63,9 @@ Dimensions:
     Name: Shared Infra Allocated by Product
     AllocateByRules:
       SpendToAllocate:
-        - Conditions:
-            - Match:
-                Source: Account
-                Value: "shared-infra-account-id"
+        Conditions:
+          - Source: Account
+            Equals: "shared-infra-account-id"
       AcrossElements:
         Source: User:Defined:Product
 ```
@@ -79,8 +79,6 @@ Dimensions:
   Customer:
     Type: Allocation
     Name: Cost per Customer
-    Hide: False
-    Disable: False
     AllocateByStreams:
       Streams:
         - customer-requests       # highest priority stream
@@ -102,10 +100,9 @@ Dimensions:
       AllocationMethod: Proportional
       ForEachElementOf: Region
       SpendToAllocate:
-        - Conditions:
-            - Match:
-                Source: User:Defined:AllocationTargetSpend
-                Value: Shared Resources
+        Conditions:
+          - Source: User:Defined:AllocationTargetSpend
+            Equals: Shared Resources
       AcrossElements:
         Rules:
           - Type: GroupBy
@@ -118,10 +115,10 @@ See `allocation-design.md` for the full set of allocation design rules including
 
 | Feature | Dimension Studio (UI) | CostFormation YAML |
 |---|---|---|
-| Version-controllable | ❌ | ✅ |
+| Version-controllable | No | Yes |
 | Supports all features | Subset | Full |
-| Fixed-weight allocation | ❌ | ✅ |
-| ForEachElementOf | ❌ | ✅ |
-| Agent-friendly | ❌ | ✅ |
+| Fixed-weight allocation | No | Yes |
+| ForEachElementOf | No | Yes |
+| Agent-friendly | No | Yes |
 
 Agents should always write YAML.

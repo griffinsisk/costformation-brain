@@ -4,12 +4,11 @@ Transforms mutate source values **before** conditions evaluate them. They are ap
 
 ```yaml
 Rules:
-  - Name: NormalizeEnv
-    Value: Production
+  - Type: Group
+    Name: Production
     Conditions:
-      - Match:
-          Source: Tag:environment
-          Value: prod
+      - Source: Tag:environment
+        Equals: prod
     Transforms:
       - Type: Lowercase   # source value lowercased before matching
 ```
@@ -50,5 +49,5 @@ Transforms:
 ## When to Use Transforms
 
 - **Always use `Lowercase`** when matching user-applied tags — tagging is rarely consistent across teams
-- Use `Split` to normalize composite tag values rather than writing multiple `Match` conditions
+- Use `Split` to normalize composite tag values rather than writing multiple `Equals` conditions
 - Prefer transforms over writing duplicate rules for casing variants

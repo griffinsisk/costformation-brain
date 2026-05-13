@@ -16,7 +16,7 @@ Consult the relevant file based on what you're working on:
 | Understanding core terminology | `concepts.md` |
 | File structure and YAML skeleton | `file-structure.md` |
 | Source prefixes and available sources | `sources.md` |
-| Writing conditions (Match, Regex, And/Or…) | `conditions.md` |
+| Writing conditions (Equals, Contains, And/Or…) | `conditions.md` |
 | Applying transforms (Lowercase, Split…) | `transforms.md` |
 | Choosing and writing dimension types | `dimension-types.md` |
 | Allocation dimension design and anti-patterns | `allocation-design.md` |
@@ -40,7 +40,8 @@ ALWAYS:
 - Prefer `HasValue: false` over `DefaultValue` to avoid processing every line item (see `performance-rules.md`)
 - Only set `DefaultValue` when the dimension is a **top-level Explorer filter** where users expect a catch-all bucket
 - Prefer `CZ:Defined:ResourceSummaryDisplay` over `ResourceId` for resource matching
-- Use `Match`, `StartsWith`, or `Contains` before reaching for `Regex`
+- Use `Equals`, `StartsWith`/`BeginsWith`, or `Contains` before reaching for `Regex`
+- Every rule must have `Type: Group` or `Type: GroupBy` — omitting Type is invalid
 - Add `Lowercase` transforms when matching user-defined tags
 - Scope `SpendToAllocate` as narrowly as possible in Allocation Dimensions
 - Use a common hidden "Spend to Allocate" dimension when multiple allocation dimensions exist — prevents overlap

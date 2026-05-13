@@ -2,42 +2,65 @@
 
 ## Basic Conditions
 
+All conditions are flat — `Source` and the operator are siblings, not nested under a wrapper keyword.
+
 ```yaml
 # Exact match (case-sensitive by default)
-- Match:
-    Source: Account
-    Value: "123456789012"
+- Source: Account
+  Equals: "123456789012"
 
-# Match multiple values (OR semantics within the same Match)
-- Match:
-    Source: Service
-    Values:
-      - AmazonEC2
-      - AmazonRDS
+# Match multiple values (OR semantics within the same condition)
+- Source: Service
+  Equals:
+    - AmazonEC2
+    - AmazonRDS
+
+# Multiple sources (checks each, first non-null wins)
+- Sources:
+    - Tag:environment
+    - Tag:env
+    - K8s:Label:environment
+  Equals: production
 
 # Starts with prefix
-- StartsWith:
-    Source: UsageType
-    Value: "USE2-"
+- Source: UsageType
+  StartsWith: "USE2-"
+
+# Begins with (alias for StartsWith)
+- Source: User:Defined:AccountName
+  BeginsWith: "AWS - Security"
 
 # Ends with suffix
-- EndsWith:
-    Source: Tag:env
-    Value: "-prod"
+- Source: Tag:env
+  EndsWith: "-prod"
 
 # Contains substring
-- Contains:
-    Source: CZ:Defined:ResourceSummaryDisplay
-    Value: "payments"
+- Source: CZ:Defined:ResourceSummaryDisplay
+  Contains: "payments"
+
+# Contains multiple (OR — matches if any substring is found)
+- Source: CZ:Defined:ResourceSummaryDisplay
+  Contains:
+    - payments
+    - billing
 
 # Regex match — use sparingly, see performance-rules.md
-- Regex:
-    Source: Tag:team
-    Pattern: "^(payments|billing).*$"
+- Source: Tag:team
+  Regex: "^(payments|billing).*$"
 
-# Tag exists (has any non-empty value)
-- Exists:
-    Source: Tag:customer-id
+# Has any value (non-empty)
+- Source: Tag:customer-id
+  HasValue: true
+
+# Has no value (empty or missing)
+- Source: User:Defined:Product
+  HasValue: false
+
+# Multi-source HasValue check
+- Sources:
+    - User:Defined:Product
+    - User:Defined:SharedAtlas
+  HasValue: false
 ```
 
 ## Logical Operators
@@ -45,33 +68,71 @@
 ```yaml
 # AND — all conditions must be true
 - And:
-    - Match:
-        Source: Service
-        Value: AmazonS3
-    - StartsWith:
-        Source: Tag:app
-        Value: "payments"
+    - Source: Service
+      Equals: AmazonS3
+    - Source: Tag:app
+      StartsWith: "payments"
 
 # OR — any condition must be true
 - Or:
-    - Match:
-        Source: Account
-        Value: "111111111111"
-    - Match:
-        Source: Account
-        Value: "222222222222"
+    - Source: Account
+      Equals: "111111111111"
+    - Source: Account
+      Equals: "222222222222"
 
 # NOT — condition must be false
 - Not:
-    - Match:
-        Source: Tag:env
-        Value: "dev"
+    - Source: Tag:env
+      Equals: "dev"
+
+# Nested — And/Or/Not can be combined to any depth
+- And:
+    - Source: CZ:Defined:ResourceSummaryDisplay
+      Contains: atlas
+    - Or:
+        - Source: K8s:Namespace
+          BeginsWith: atlas
+        - And:
+            - Source: Service
+              Equals: AWSSecretsManager
+            - Source: CZ:Defined:ResourceSummaryDisplay
+              BeginsWith: prod-atlas
+```
+
+## Multiple Conditions Under a Rule (Implicit OR)
+
+Multiple top-level conditions under a single rule are OR'd — any match assigns the charge to that rule's element:
+
+```yaml
+Rules:
+  - Type: Group
+    Name: Automation
+    Conditions:
+      - Equals: automation              # matches if dimension-level Sources = automation
+      - And:                             # OR matches if Service is CloudWatch AND resource contains automation
+          - Source: Service
+            Equals: AmazonCloudWatch
+          - Source: CZ:Defined:ResourceSummaryDisplay
+            Contains: automation
+```
+
+## CoalesceSources
+
+When using `Sources` (plural), `CoalesceSources: true` picks the first non-null value across all listed sources:
+
+```yaml
+- Type: GroupBy
+  Sources:
+    - K8s:Label:chain.link/team
+    - Tag:chain.link/team
+    - Tag:team
+  CoalesceSources: true
 ```
 
 ## Condition Selection Guide
 
 Prefer in this order for performance:
-1. `Match` — exact, indexed
-2. `StartsWith` / `EndsWith` — prefix/suffix, efficient
+1. `Equals` — exact, indexed
+2. `StartsWith` / `BeginsWith` / `EndsWith` — prefix/suffix, efficient
 3. `Contains` — substring scan, acceptable
 4. `Regex` — row-by-row evaluation, no index benefit — last resort only

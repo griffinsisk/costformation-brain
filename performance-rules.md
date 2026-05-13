@@ -46,7 +46,7 @@ Regex is evaluated row-by-row with no index benefit. Broad patterns on high-card
     Value: "payments"
 ```
 
-Use `Match` → `StartsWith`/`EndsWith` → `Contains` → `Regex` in that order of preference.
+Use `Equals` → `StartsWith`/`BeginsWith`/`EndsWith` → `Contains` → `Regex` in that order of preference.
 
 ---
 
@@ -246,13 +246,12 @@ SpendToAllocate:
 
 # GOOD — allocates only the specific shared account + service
 SpendToAllocate:
-  - And:
-    - Match:
-        Source: Account
-        Value: "shared-infra-account-id"
-    - Match:
-        Source: Service
-        Value: AmazonRDS
+  Conditions:
+    - And:
+      - Source: Account
+        Equals: "shared-infra-account-id"
+      - Source: Service
+        Equals: AmazonRDS
 ```
 
 ---
@@ -262,7 +261,7 @@ SpendToAllocate:
 Before finalizing any dimension:
 
 - [ ] Am I using `CZ:Defined:ResourceSummaryDisplay` instead of `ResourceId`?
-- [ ] Have I avoided Regex where Match/Contains would work?
+- [ ] Have I avoided Regex where Equals/Contains would work?
 - [ ] Is element count expected to stay under 200?
 - [ ] Is `DefaultValue` only set on dimensions that need it (top-level Explorer filters)? Have I used `HasValue: false` for hidden/helper dimensions?
 - [ ] Is `SpendToAllocate` scoped as narrowly as possible?
