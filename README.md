@@ -18,40 +18,57 @@ curl -s -H "Authorization: Bearer $CZ_API_KEY" \
 
 ```bash
 # Clone into the same directory as your dimension file
-git clone https://github.com/cloudzero/costformation-brain.git
+git clone https://github.com/griffinsisk/costformation-brain.git
 
 # Your workspace should look like this:
 # my-costformation/
 #   costformation.cz.yaml        ← your dimension file
 #   costformation-brain/          ← this repo
+#     CLAUDE.md
 #     SKILL.md
 #     concepts.md
 #     examples.md
+#     my-org/
 #     ...
 ```
 
 Or download and unzip — no git required.
 
-### 3. Start editing
+### 3. Copy the agent instructions to your workspace root
 
-Open the folder in your IDE or CLI and ask your AI assistant to work on the dimension file. It automatically picks up the corpus and applies the rules.
+This is the critical step. AI agents don't reliably read local files before acting — they'll generate CostFormation from memory and get it wrong. The instruction files force them to consult the brain first.
 
 **Claude Code:**
+```bash
+cp costformation-brain/CLAUDE.md ./CLAUDE.md
+```
+
+**Cursor:**
+```bash
+cp costformation-brain/.cursorrules ./.cursorrules
+```
+
+**GitHub Copilot:**
+```bash
+mkdir -p .github && cp costformation-brain/.github/copilot-instructions.md .github/
+```
+
+**Codex / other agents:**
+```bash
+cp costformation-brain/AGENTS.md ./AGENTS.md
+```
+
+### 4. Start editing
+
+Open `my-costformation/` in your IDE or CLI. The agent instructions load automatically and force the AI to read the brain before writing any YAML.
+
 ```bash
 cd my-costformation
 claude
 # "Add a Team dimension that maps K8s labels to engineering teams"
 ```
 
-**Cursor / Copilot / Windsurf:**
-Open the folder. The AI reads SKILL.md from the local context and uses the corpus files when generating CostFormation YAML.
-
-**Codex CLI:**
-```bash
-cd my-costformation
-codex
-# Same as above — local files are picked up as context
-```
+The agent will read SKILL.md, check your my-org/ context, consult performance-rules.md, and then generate correct CostFormation YAML.
 
 ### 4. Upload your changes
 
@@ -118,22 +135,21 @@ The agent will pull your account list, existing dimensions, and tag keys from th
 
 No MCP required. Open the files in `my-org/`, fill in the templates, and start asking your agent to write dimensions. Even partial context (just your account list, or just your tag conventions) significantly improves output quality.
 
-## For Claude Code Users
+## Why the Copy Step Matters
 
-If you want the skill available in every workspace without cloning each time, add it as a custom skill:
+AI agents (Claude, Cursor, Copilot, Codex) will confidently generate CostFormation YAML from general knowledge. The output looks plausible but uses wrong syntax — flat `Source/Contains` keys instead of proper CFDL structure with `Conditions`, `Type: Group`, plural `Sources`, `CoalesceSources`, transforms, etc.
 
-```bash
-# From inside the costformation-brain directory
-claude skill install .
-```
+The instruction files (`CLAUDE.md`, `.cursorrules`, `copilot-instructions.md`, `AGENTS.md`) are loaded automatically by each IDE before the agent responds. They force the agent to read the brain's corpus before writing anything. Without this step, the brain sits in the directory unused.
 
-Or reference it in your project's `CLAUDE.md`:
+## Included Instruction Files
 
-```markdown
-## CostFormation
-When working on CostFormation YAML, consult the corpus in `costformation-brain/`.
-Always read `costformation-brain/SKILL.md` first.
-```
+| File | IDE/CLI | Auto-loaded? |
+|---|---|---|
+| `CLAUDE.md` | Claude Code | Yes, when in workspace root |
+| `.cursorrules` | Cursor | Yes, when in workspace root |
+| `.github/copilot-instructions.md` | GitHub Copilot | Yes, when in workspace root |
+| `AGENTS.md` | Codex, Gemini CLI, others | Varies by tool |
+| `SKILL.md` | Any agent (manual read) | Only if instructed |
 
 ## Reference
 
