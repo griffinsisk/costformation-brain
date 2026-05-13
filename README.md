@@ -6,7 +6,26 @@ Works with Claude Code, Cursor, Copilot, Codex, Windsurf — any IDE or CLI with
 
 ## Quick Start
 
-### 1. Pull your current CostFormation file
+### 1. Set up your workspace
+
+```bash
+mkdir my-costformation && cd my-costformation
+git clone https://github.com/griffinsisk/costformation-brain.git
+```
+
+### 2. Connect to CloudZero and pull your dimensions
+
+**Recommended — CloudZero MCP (works with Claude Code, Cursor, and other MCP-enabled agents):**
+
+Connect the [CloudZero MCP server](https://docs.cloudzero.com/docs/ai-mcp-server) to your agent, then ask it:
+
+```
+Pull my current CostFormation definition and save it as costformation.cz.yaml
+```
+
+The agent authenticates via MCP and downloads your dimension file directly. This also enables the agent to query your account's dimensions, costs, and tags while writing new definitions.
+
+**Alternative — API (no MCP required):**
 
 ```bash
 curl -s -H "Authorization: Bearer $CZ_API_KEY" \
@@ -14,29 +33,20 @@ curl -s -H "Authorization: Bearer $CZ_API_KEY" \
   -o costformation.cz.yaml
 ```
 
-### 2. Drop the brain next to it
-
-```bash
-# Clone into the same directory as your dimension file
-git clone https://github.com/griffinsisk/costformation-brain.git
-
-# Your workspace should look like this:
-# my-costformation/
-#   costformation.cz.yaml        ← your dimension file
-#   costformation-brain/          ← this repo
-#     CLAUDE.md
-#     SKILL.md
-#     concepts.md
-#     examples.md
-#     my-org/
-#     ...
+Your workspace should look like this:
 ```
-
-Or download and unzip — no git required.
+my-costformation/
+  costformation.cz.yaml        ← your dimension file
+  costformation-brain/          ← this repo
+    CLAUDE.md
+    SKILL.md
+    my-org/
+    ...
+```
 
 ### 3. Copy the agent instructions to your workspace root
 
-This is the critical step. AI agents don't reliably read local files before acting — they'll generate CostFormation from memory and get it wrong. The instruction files force them to consult the brain first.
+AI agents don't reliably read local files before acting — they'll generate CostFormation from memory and get it wrong. The instruction files force them to consult the brain first.
 
 **Claude Code:**
 ```bash
@@ -70,8 +80,11 @@ claude
 
 The agent will read SKILL.md, check your my-org/ context, consult performance-rules.md, and then generate correct CostFormation YAML.
 
-### 4. Upload your changes
+### 5. Publish your changes
 
+**With MCP:** Ask the agent to publish your updated CostFormation file through the CloudZero API.
+
+**With curl:**
 ```bash
 curl -X POST -H "Authorization: Bearer $CZ_API_KEY" \
   -H "Content-Type: application/yaml" \
