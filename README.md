@@ -38,6 +38,15 @@ Copy one instruction file to your project root:
 | GitHub Copilot | `mkdir -p .github && cp costformation-brain/.github/copilot-instructions.md .github/` |
 | Codex / Gemini / other | `cp costformation-brain/AGENTS.md ./AGENTS.md` |
 
+**Optional but recommended — Connect the CloudZero MCP:**
+
+The agent works without the MCP (it parses your costformation file directly), but with it connected, the agent can query your accounts, tags, cost data, and dimensions in real-time — producing significantly better output.
+
+- **Claude Code:** Run `/mcp` and add the [CloudZero MCP server](https://docs.cloudzero.com/docs/ai-mcp-server), or install the [CloudZero cost-analyst plugin](https://docs.cloudzero.com/docs/ai-skills) which includes MCP access
+- **Cursor / other MCP-enabled agents:** Follow the [MCP setup guide](https://docs.cloudzero.com/docs/ai-mcp-server)
+
+If the MCP isn't connected when you start building, the agent will let you know what it's missing and how to connect it.
+
 ### 4. Start building dimensions
 
 ```
