@@ -40,7 +40,7 @@ ALWAYS:
 - Prefer `HasValue: false` over `DefaultValue` to avoid processing every line item (see `performance-rules.md`)
 - Only set `DefaultValue` when the dimension is a **top-level Explorer filter** where users expect a catch-all bucket
 - Prefer `CZ:Defined:ResourceSummaryDisplay` over `ResourceId` for resource matching
-- Use `Equals`, `StartsWith`/`BeginsWith`, or `Contains` before reaching for `Regex`
+- Use `Equals`, `StartsWith`/`BeginsWith`, or `Contains` before reaching for `Matches` (regex)
 - Every rule must have `Type: Group` or `Type: GroupBy` — omitting Type is invalid
 - Add `Lowercase` transforms when matching user-defined tags
 - Scope `SpendToAllocate` as narrowly as possible in Allocation Dimensions
@@ -56,5 +56,5 @@ NEVER:
 - Create overlapping `SpendToAllocate` conditions across multiple allocation dimensions
 - Send telemetry with non-UTC or non-hourly-aligned timestamps
 - Reference a `User:Defined:` dimension that hasn't been published yet
-- Use overly broad Regex patterns on high-cardinality sources
+- Use overly broad `Matches` (regex) patterns on high-cardinality sources
 - Set `DefaultValue` on hidden/helper dimensions — it forces processing every line item for no user benefit

@@ -28,25 +28,23 @@ Everything CostFormation computes is stored and reprocessed in Snowflake. Bad pa
 
 ---
 
-## ❌ Anti-Pattern 2: Broad Regex on High-Cardinality Fields
+## ❌ Anti-Pattern 2: Broad `Matches` (Regex) on High-Cardinality Fields
 
-Regex is evaluated row-by-row with no index benefit. Broad patterns on high-cardinality sources scan the entire dataset.
+`Matches` is evaluated row-by-row with no index benefit. Broad patterns on high-cardinality sources scan the entire dataset.
 
 ```yaml
 # BAD — broad regex on a tag with many unique values
-- Regex:
-    Source: Tag:description
-    Pattern: ".*payments.*"
+- Source: Tag:description
+  Matches: ".*payments.*"
 ```
 
 ```yaml
 # GOOD — use Contains instead
-- Contains:
-    Source: Tag:description
-    Value: "payments"
+- Source: Tag:description
+  Contains: "payments"
 ```
 
-Use `Equals` → `StartsWith`/`BeginsWith`/`EndsWith` → `Contains` → `Regex` in that order of preference.
+Use `Equals` → `StartsWith`/`BeginsWith`/`EndsWith` → `Contains` → `Matches` in that order of preference.
 
 ---
 
@@ -261,7 +259,7 @@ SpendToAllocate:
 Before finalizing any dimension:
 
 - [ ] Am I using `CZ:Defined:ResourceSummaryDisplay` instead of `ResourceId`?
-- [ ] Have I avoided Regex where Equals/Contains would work?
+- [ ] Have I avoided `Matches` (regex) where Equals/Contains would work?
 - [ ] Is element count expected to stay under 200?
 - [ ] Is `DefaultValue` only set on dimensions that need it (top-level Explorer filters)? Have I used `HasValue: false` for hidden/helper dimensions?
 - [ ] Is `SpendToAllocate` scoped as narrowly as possible?

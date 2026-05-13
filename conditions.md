@@ -44,9 +44,15 @@ All conditions are flat — `Source` and the operator are siblings, not nested u
     - payments
     - billing
 
-# Regex match — use sparingly, see performance-rules.md
+# Regex match (Matches) — use sparingly, see performance-rules.md
 - Source: Tag:team
-  Regex: "^(payments|billing).*$"
+  Matches: "^(payments|billing).*$"
+
+# Regex match multiple patterns
+- Source: Tag:description
+  Matches:
+    - ".* (cost|product) types"
+    - "^shared-.*"
 
 # Has any value (non-empty)
 - Source: Tag:customer-id
@@ -116,6 +122,23 @@ Rules:
             Contains: automation
 ```
 
+## Ordering Conditions
+
+```yaml
+# Alphabetical ordering
+- Source: Tag:department
+  Before: "M"              # matches A-L
+
+- Source: Tag:department
+  AfterOrEquals: "M"       # matches M-Z
+
+# Date range filtering
+- Source: CZ:Defined:BillingLineItem
+  ForDateRange:
+    Start: "2024-01-01"
+    End: "2024-03-31"
+```
+
 ## CoalesceSources
 
 When using `Sources` (plural), `CoalesceSources: true` picks the first non-null value across all listed sources:
@@ -135,4 +158,4 @@ Prefer in this order for performance:
 1. `Equals` — exact, indexed
 2. `StartsWith` / `BeginsWith` / `EndsWith` — prefix/suffix, efficient
 3. `Contains` — substring scan, acceptable
-4. `Regex` — row-by-row evaluation, no index benefit — last resort only
+4. `Matches` (regex) — row-by-row evaluation, no index benefit — last resort only
