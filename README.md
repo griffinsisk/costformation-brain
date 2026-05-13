@@ -93,7 +93,6 @@ allocation-design.md     ← Allocation-specific design rules and anti-patterns
 telemetry.md             ← Telemetry API, stream design, target dimensions
 performance-rules.md     ← Snowflake cost rules — the agent reads this before every definition
 examples.md              ← 10 real-world-derived worked examples
-reference/               ← Source material (CZ Engineering best practices)
 my-org/                  ← YOUR org context — accounts, tags, dimensions, goals
   accounts.yaml          ← AWS account IDs, names, owners, department mapping
   tags.yaml              ← Tag keys in use, naming conventions, coverage notes
@@ -152,16 +151,7 @@ The instruction files (`CLAUDE.md`, `.cursorrules`, `copilot-instructions.md`, `
 | `AGENTS.md` | Codex, Gemini CLI, others | Varies by tool |
 | `SKILL.md` | Any agent (manual read) | Only if instructed |
 
-## Sources & Attribution
-
-This corpus is built from real CloudZero engineering knowledge and customer implementations, not generic documentation:
-
-- **Performance rules and allocation design** — sourced from Matt Yellen's *CostFormation Best Practices* (CloudZero Confluence, Engineering wiki). Matt maintains the Snowflake infrastructure these dimensions query against. The original document is preserved in `reference/eng-costformation-best-practices.md`.
-- **Worked examples** — derived from 12 real customer CostFormation files (anonymized) ranging from simple account mappings to 38-dimension Kubernetes + multi-cloud deployments with telemetry allocation pipelines.
-- **Dimension reference table** — the canonical `CZ Dimension Reference.csv` mapping all built-in dimensions across CostFormation syntax, API references, and telemetry filter keys. Preserved in `reference/`.
-- **Non-negotiable rules** — aggregated from internal engineering tribal knowledge, customer support incidents, and the CFDL language reference.
-
-## Public Reference
+## Reference
 
 | Resource | URL |
 |---|---|
@@ -174,3 +164,14 @@ This corpus is built from real CloudZero engineering knowledge and customer impl
 | Advanced Dimension Features | https://docs.cloudzero.com/docs/ds-advanced-features |
 | CloudZero MCP Server | https://docs.cloudzero.com/docs/ai-mcp-server |
 | Claude Code Skills | https://docs.cloudzero.com/docs/ai-skills |
+
+## Sources
+
+This corpus is built from real CloudZero engineering knowledge and customer implementations:
+
+| What | Source | Used In |
+|---|---|---|
+| Performance rules, allocation design, DefaultValue guidance, expansion factor formula | CloudZero Engineering — *CostFormation Best Practices* (Confluence, Matt Yellen, Aug 2025) | `performance-rules.md`, `allocation-design.md` |
+| 10 worked examples (anonymized) | 12 real customer CostFormation files from the Accounts shared drive | `examples.md` |
+| Complete dimension reference (CostFormation syntax, API refs, telemetry filter keys) | *CZ Dimension Reference* spreadsheet | `sources.md`, `telemetry.md` |
+| Non-negotiable rules, condition/transform syntax | CFDL language reference + internal engineering tribal knowledge | `SKILL.md`, `conditions.md`, `transforms.md` |
