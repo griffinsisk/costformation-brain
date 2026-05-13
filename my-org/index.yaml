@@ -1,0 +1,16 @@
+# Compact summary of org context. Read this first.
+# Load full my-org/ files only when you need detail for the requested dimension.
+# For new writes: load all detail files if this index is empty, stale, or missing relevant signals.
+#
+# last-synced: never
+# source-hash: none
+# context-hash: none
+
+account_count: 0
+dimension_count: 0
+has_k8s: false
+
+top_accounts: []       # list of strings: "<account-id> — <account-name>"
+top_tags: []           # list of strings: "<tag-key> (coverage: high|medium|low)"
+existing_dimensions:   # list of objects: {id: DimensionId, type: standard|allocation, name: Display Name}
+  []
