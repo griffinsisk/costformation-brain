@@ -1,19 +1,25 @@
 # CloudZero CostFormation Brain
 
-An AI knowledge corpus that makes any coding agent an expert at writing CloudZero CostFormation YAML. Drop it next to your dimension file and your AI assistant writes correct, performant definitions on the first try.
+An AI knowledge corpus that makes any coding agent an expert at writing CloudZero CostFormation YAML. Drop it into your project and your AI assistant writes correct, performant definitions on the first try.
 
 Works with Claude Code, Cursor, Copilot, Codex, Windsurf — any IDE or CLI with an AI assistant.
 
 ## Quick Start
 
-### 1. Create your workspace and clone the brain
+### 1. Clone the brain into your project
 
 ```bash
-mkdir my-costformation && cd my-costformation
+cd your-project
 git clone https://github.com/griffinsisk/costformation-brain.git
 ```
 
-### 2. Pull your current CostFormation file
+### 2. Pull your CostFormation file
+
+**VS Code with the CloudZero Toolkit** (`cloudzero.costformation-toolkit`):
+
+The toolkit handles authentication, pulling your latest definition, and publishing changes — no API key in the terminal needed. If you don't have it yet, install it from the [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=cloudzero.costformation-toolkit).
+
+**Without the toolkit:**
 
 ```bash
 curl -s -H "Authorization: Bearer $CZ_API_KEY" \
@@ -23,11 +29,11 @@ curl -s -H "Authorization: Bearer $CZ_API_KEY" \
 
 ### 3. Tell your agent about the brain
 
-Agents won't read local files on their own — they need to be told. Copy the instruction file for your IDE to the workspace root:
+Agents won't read local files on their own — they need to be told. Copy the instruction file for your IDE to the project root:
 
 | IDE / CLI | Command |
 |---|---|
-| Claude Code | `cp costformation-brain/CLAUDE.md ./CLAUDE.md` |
+| Claude Code (CLI or VS Code) | `cp costformation-brain/CLAUDE.md ./CLAUDE.md` |
 | Cursor | `cp costformation-brain/.cursorrules ./.cursorrules` |
 | GitHub Copilot | `mkdir -p .github && cp costformation-brain/.github/copilot-instructions.md .github/` |
 | Codex / Gemini / other | `cp costformation-brain/AGENTS.md ./AGENTS.md` |
@@ -47,15 +53,21 @@ Each file has a commented template — fill in what's relevant, skip what isn't.
 
 If you have the [CloudZero MCP server](https://docs.cloudzero.com/docs/ai-mcp-server) connected, you can ask the agent to populate these from your account automatically — then add the business context the API can't know (team ownership, dimension goals, how shared costs should be split).
 
-### 5. Start editing
+### 5. Start building dimensions
 
-```bash
-cd my-costformation
-claude   # or open in Cursor, VS Code, etc.
-# "Add a Team dimension that maps K8s labels to engineering teams"
+Open your project in VS Code (or your IDE of choice) and talk to your coding agent:
+
+```
+"Add a Team dimension that maps K8s labels to engineering teams"
 ```
 
+The agent reads the brain, checks your org context, and generates correct CostFormation YAML directly in your definition file.
+
 ### 6. Publish
+
+**VS Code with the CloudZero Toolkit:** Use the toolkit's built-in publish command — it handles diff review and conflict resolution.
+
+**Without the toolkit:**
 
 ```bash
 curl -X POST -H "Authorization: Bearer $CZ_API_KEY" \
@@ -84,6 +96,7 @@ Without the instruction file, agents confidently generate wrong CostFormation sy
 | Telemetry API Reference | https://docs.cloudzero.com/reference/allocation-telemetry-api-1 |
 | Advanced Dimension Features | https://docs.cloudzero.com/docs/ds-advanced-features |
 | CloudZero MCP Server | https://docs.cloudzero.com/docs/ai-mcp-server |
+| CloudZero CostFormation Toolkit (VS Code) | https://marketplace.visualstudio.com/items?itemName=cloudzero.costformation-toolkit |
 | Claude Code Skills | https://docs.cloudzero.com/docs/ai-skills |
 
 ## Sources
