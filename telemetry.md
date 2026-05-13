@@ -18,23 +18,29 @@ Content-Type: application/json
 {
   "records": [
     {
-      "filter": {
-        "element_tag": "acme-corp"
-      },
-      "value": 142.5,
       "timestamp": "2024-01-15T14:00:00Z",
-      "granularity": "HOURLY"
+      "granularity": "HOURLY",
+      "filter": {
+        "custom:Customer": ["acme-corp"],
+        "tag:environment": ["prod"]
+      },
+      "element-name": "acme-corp",
+      "value": 142.5
     }
   ]
 }
 ```
 
+- `element-name` — the target element in the allocation dimension (what the cost gets allocated to)
+- `filter` — narrows which charges this record applies to, using telemetry filter keys (see `sources.md`)
+
 ## Rules for Telemetry Records
 
 1. **Timestamps must be hourly-aligned UTC** — minutes and seconds must be `00:00`. Example: `2024-01-15T14:00:00Z` ✅ — `2024-01-15T14:23:11Z` ❌
 2. **Default to `HOURLY` granularity** — matches CloudZero's billing reprocessing cadence
-3. **Element tags must exactly match element names** in your dimension — case-sensitive
-4. **Send proportions, not absolute values** — CloudZero normalizes within each time window. `{a:100, b:200}` is equivalent to `{a:1, b:2}`
+3. **`element-name` must exactly match element names** in your allocation dimension — case-sensitive
+4. **`filter` uses telemetry filter keys** (see `sources.md`) — NOT CostFormation source syntax. E.g., `"custom:Environment"` not `"User:Defined:Environment"`
+5. **Send proportions, not absolute values** — CloudZero normalizes within each time window. `{a:100, b:200}` is equivalent to `{a:1, b:2}`
 5. **Telemetry must arrive before nightly reprocessing** — aim to send within 2 hours of the period it covers. Late data triggers expensive retroactive reprocessing
 6. **Don't backfill more than 90 days** unless on Enterprise tier
 7. **Missing windows** — if no telemetry exists for a time window, costs fall to `DefaultValue`. Ensure continuous coverage
@@ -146,10 +152,11 @@ from datetime import datetime, timezone
 
 records = [
     {
-        "filter": {"element_tag": customer_id},
-        "value": request_count,
         "timestamp": hour_utc.strftime("%Y-%m-%dT%H:00:00Z"),
-        "granularity": "HOURLY"
+        "granularity": "HOURLY",
+        "filter": {"custom:Customer": [customer_id]},
+        "element-name": customer_id,
+        "value": request_count,
     }
     for customer_id, request_count in hourly_counts.items()
 ]

@@ -350,10 +350,11 @@ import requests
 
 records = [
     {
-        "filter": {"element_tag": product_name},
-        "value": bytes_received,
         "timestamp": hour_utc.strftime("%Y-%m-%dT%H:00:00Z"),
-        "granularity": "HOURLY"
+        "granularity": "HOURLY",
+        "filter": {"custom:Product": [product_name]},
+        "element-name": product_name,
+        "value": bytes_received,
     }
     for product_name, bytes_received in hourly_log_bytes.items()
 ]
