@@ -46,7 +46,7 @@ Pattern: group many AWS accounts into business departments. Good for orgs with 2
 Dimensions:
   Department:
     Name: Department
-    DefaultValue: Unassigned
+    DefaultValue: Unassigned    # intentional — top-level Explorer filter needs a named catch-all
     Rules:
       - Type: Group
         Name: Customer Operations
@@ -172,7 +172,7 @@ Pattern: map charges to products using nested boolean logic across K8s labels, t
 Dimensions:
   Product:
     Name: Product
-    DefaultValue: Unassigned
+    DefaultValue: Unassigned    # intentional — top-level Explorer filter needs a named catch-all
     Sources:
       - K8s:Label:chain.link/product
       - Tag:chain.link/product
@@ -234,7 +234,7 @@ Pattern: explicit team rules for known teams, with a GroupBy catch-all that auto
 Dimensions:
   Team:
     Name: Team
-    DefaultValue: Unassigned
+    DefaultValue: Unassigned    # intentional — top-level Explorer filter needs a named catch-all
     Child: User:Defined:Environment
     Rules:
       - Type: Group
