@@ -19,5 +19,5 @@ Dimensions:
         - test_stream
       SpendToAllocate:
         Conditions:
-          - Source: Tag:pool
-            Equals: shared
+          - Source: User:Defined:SharedSpend
+            Equals: Shared

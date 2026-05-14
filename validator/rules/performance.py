@@ -81,30 +81,55 @@ def _walk_matches_in_conditions(conditions, parent_node) -> list:
 
 
 class DefaultValueAllocationInputRule(Rule):
-    """ERROR defaultvalue-allocation-input — hidden helper dim with DefaultValue.
+    """ERROR defaultvalue-allocation-input — hidden dim with DefaultValue that
+    is referenced by an allocation dimension.
 
-    A hidden dimension used as an allocation input should not have DefaultValue,
-    because it forces processing every line item through that dimension.
-    Allocation-type dimensions themselves are exempt.
+    Only fires when the hidden dim is actually used as an allocation input:
+    referenced in SpendToAllocate conditions, as an AllocateByStreams filter
+    target, or as a Source in an allocation dim's AcrossElements.
+
+    Hidden dims with DefaultValue that are NOT allocation-adjacent get the
+    softer defaultvalue-hidden-performance WARNING instead.
     """
 
     def check(self, dimensions: dict, context: dict) -> List[Diagnostic]:
         diagnostics: List[Diagnostic] = []
+        allocation_refs = self._collect_allocation_refs(dimensions)
+
         for dim_id, dim_node in dimensions.items():
             if not isinstance(dim_node, dict):
                 continue
             is_hidden = _is_truthy(dim_node.get("Hide", False))
             has_default = "DefaultValue" in dim_node
             is_allocation = dim_node.get("Type") == "Allocation"
-            if is_hidden and has_default and not is_allocation:
+
+            if not (is_hidden and has_default and not is_allocation):
+                continue
+
+            if dim_id in allocation_refs:
                 diagnostics.append(
                     Diagnostic(
                         severity=Severity.ERROR,
                         rule_id="defaultvalue-allocation-input",
                         message=(
-                            f"Hidden dimension '{dim_id}' has DefaultValue, which "
-                            f"forces every line item through this dimension. "
-                            f"Remove DefaultValue or unhide the dimension."
+                            f"Hidden dimension '{dim_id}' has DefaultValue and is "
+                            f"referenced by allocation dimension(s). DefaultValue forces "
+                            f"every line item through this dimension — remove it."
+                        ),
+                        path=f"Dimensions.{dim_id}.DefaultValue",
+                        line=_line_of(dim_node),
+                        dimension_id=dim_id,
+                    )
+                )
+            else:
+                diagnostics.append(
+                    Diagnostic(
+                        severity=Severity.WARN,
+                        rule_id="defaultvalue-hidden-performance",
+                        message=(
+                            f"Hidden dimension '{dim_id}' has DefaultValue, which forces "
+                            f"every line item through this dimension. Consider removing "
+                            f"DefaultValue unless a named catch-all is intentional."
                         ),
                         path=f"Dimensions.{dim_id}.DefaultValue",
                         line=_line_of(dim_node),
@@ -112,6 +137,21 @@ class DefaultValueAllocationInputRule(Rule):
                     )
                 )
         return diagnostics
+
+    @staticmethod
+    def _collect_allocation_refs(dimensions: dict) -> set:
+        """Collect all User:Defined dim IDs referenced by allocation dimensions."""
+        refs = set()
+        for dim_id, dim_node in dimensions.items():
+            if not isinstance(dim_node, dict):
+                continue
+            if dim_node.get("Type") != "Allocation":
+                continue
+            raw = str(dim_node)
+            import re
+            for match in re.finditer(r'User:Defined:([A-Za-z0-9_\-]+)', raw):
+                refs.add(match.group(1))
+        return refs
 
 
 class AllocateByStreamsSPTARule(Rule):

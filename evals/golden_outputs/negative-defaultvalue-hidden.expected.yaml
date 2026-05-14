@@ -1,6 +1,6 @@
-# Negative case: hidden helper dimension with DefaultValue.
-# Hidden non-allocation dims must not have DefaultValue.
-# This must trigger rule defaultvalue-allocation-input.
+# Negative case: hidden helper dimension with DefaultValue that is
+# referenced by an allocation dimension. This must trigger rule
+# defaultvalue-allocation-input (ERROR).
 
 Dimensions:
   EnvHelper:
@@ -13,8 +13,26 @@ Dimensions:
         Name: Production
         Conditions:
           - Equals: '100200300401'
-
       - Type: Group
         Name: Non-Production
         Conditions:
           - Equals: '100200300402'
+
+  EnvAllocation:
+    Name: Environment Allocation
+    Type: Allocation
+    Hide: true
+    AllocateByRules:
+      AllocationMethod: Proportional
+      SpendToAllocate:
+        Conditions:
+          - Source: User:Defined:EnvHelper
+            Equals: Unknown
+      AcrossElements:
+        Rules:
+          - Type: GroupBy
+            Source: User:Defined:EnvHelper
+            Conditions:
+              - Equals:
+                  - Production
+                  - Non-Production
