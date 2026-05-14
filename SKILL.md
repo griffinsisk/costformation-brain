@@ -41,6 +41,11 @@ Consult the relevant file based on what you're working on:
 4. Read `allocation-design.md` before writing any Allocation Dimension.
 5. Check `examples/index.yaml` for a matching pattern before writing a dimension from scratch.
 
+**After generating or modifying CostFormation YAML:**
+6. Run `python3 costformation-brain/validator/lint.py <file>` on the output.
+7. Fix all ERRORs before presenting the YAML to the customer. Do not show YAML that has validator errors.
+8. If WARNINGs remain, briefly summarize them when presenting the output (e.g., "The validator flagged 2 warnings: visible dimension X has no Child drill-down, and Y has DefaultValue without an intent comment."). Do not block on warnings for customer-facing work.
+
 **When the user provides business context** (team mappings, CSVs, org charts, goals, constraints), persist it to `my-org/context.md` so it survives across sessions.
 
 ## Non-Negotiable Rules
