@@ -24,7 +24,7 @@ Dimensions:
       - Type: Group
         Name: app-prod-east
         Conditions:
-          - Equals: '347508672966'
+          - Equals: '901234567001'
 
       - Type: Group
         Name: app-prod-west
