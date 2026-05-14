@@ -181,3 +181,164 @@ requests.post(
     json={"records": records}
 )
 ```
+
+---
+
+## Telemetry Key Reference
+
+Record `filter` keys and query `group_by` keys use **different naming conventions**. Do not mix them.
+
+### Record Filter Keys
+
+Used in CSV columns and API `filter` objects when sending telemetry records.
+
+| CostFormation Source | Telemetry Record Filter Key |
+|---|---|
+| `Account` | `accounts` |
+| `Service` | `services` |
+| `Region` | `region` |
+| `CloudProvider` | `cloud_provider` |
+| `UsageFamily` | `product_family` |
+| `CZ:Defined:ResourceSummaryDisplay` | `custom:Resource Summary Display` |
+| `CZ:Defined:ResourceType` | `custom:Resource Type` |
+| `CZ:Defined:Category` | `custom:Category` |
+| `CZ:Defined:GenAI_Model` | `custom:GenAI Model` |
+| `CZ:Defined:GenAI_Platform` | `custom:GenAI Platform` |
+| `CZ:Defined:GenAI_TokenType` | `custom:GenAI Token Type` |
+| `CZ:Defined:GenAI_Model_Family` | `custom:GenAI Model Family` |
+| `CZ:Defined:InstanceType` | `custom:Instance Type` |
+| `CZ:Defined:PaymentOption` | `custom:Payment Option` |
+| `CZ:Defined:ServiceDetail` | `custom:Service Detail` |
+| `CZ:Defined:BillingLineItem` | `custom:Billing Line Item` |
+| `CZ:Defined:NetworkCategory` | `custom:Networking Category` |
+| `CZ:Defined:NetworkSubCategory` | `custom:Networking Sub-Category` |
+| `CZ:Defined:TaggableVsUntaggable` | `custom:Taggable vs. Untaggable` |
+| `User:Defined:<DimId>` | `custom:<Dimension Display Name>` |
+| `Tag:<TagName>` | `tag:<TagName>` |
+| `K8s:Namespace` | `k8s_namespace:Name` |
+| `K8s:Cluster` | `k8s_cluster:Name` |
+| `K8s:Label:<LabelName>` | `k8s_label:<LabelName>` |
+| `K8s:Workload` | `k8s_workload:Name` |
+| `Resource` (CZRN) | Not applicable |
+| `CZ:Defined:ResourceNameOnly` | Not applicable |
+
+For `User:Defined:<DimId>`, the filter key uses the dimension's UI display name (the `Name:` field in CostFormation), not the DimensionId.
+
+### Query group_by Keys
+
+Used in telemetry query API requests (`group_by` parameter). These use the API Reference format — the same source identifiers used in CostFormation — plus `element_name` for grouping by telemetry element.
+
+| What to group by | group_by Key |
+|---|---|
+| Account | `Account` |
+| Service | `Service` |
+| Region | `Region` |
+| Cloud Provider | `CloudProvider` |
+| Usage Family | `UsageFamily` |
+| Tag | `Tag:<TagName>` |
+| CZ built-in dimension | `CZ:Defined:<DimId>` |
+| Custom dimension | `User:Defined:<DimId>` |
+| K8s Namespace | `K8s:Namespace` |
+| K8s Cluster | `K8s:Cluster` |
+| K8s Workload | `K8s:Workload` |
+| K8s Label | `K8s:Label:<LabelName>` |
+| Telemetry element | `element_name` |
+
+---
+
+## UCA CLI Quirks
+
+When using the CloudZero UCA (Usage and Cost Allocation) CLI to upload telemetry, watch for these known issues:
+
+1. **`$ENV_VAR` is not resolved** — the UCA CLI does not expand shell environment variables in config files or arguments. Substitute values explicitly before passing them, or export them into the invocation context with a wrapper script. Using `$API_KEY` or `${STREAM_NAME}` literally in a YAML config will be sent as-is and fail silently.
+
+2. **Monthly granularity is omitted from some CLI docs** — the CLI supports `HOURLY`, `DAILY`, and `MONTHLY` granularities, but older documentation examples only show `HOURLY` and `DAILY`. If you need monthly signals (e.g. amortized commitments), pass `granularity: MONTHLY` explicitly. Missing this causes the API to reject records with an invalid granularity error.
+
+3. **CZ system dimension prefix confusion** — the CLI documentation sometimes refers to CZ built-in dimensions without their `CZ:Defined:` prefix. When specifying filter keys or group_by values in CLI config, always use the full prefix form (`CZ:Defined:ResourceSummaryDisplay`, etc.) for CostFormation references. The telemetry record filter keys use `custom:` — not `CZ:Defined:` — so the two representations must never be mixed in the same file.
+
+---
+
+## Replace vs Delete-Then-Replace
+
+Choosing between `/replace` and delete-then-replace depends on who controls the record keys.
+
+**Use `/replace` (safe, atomic) when:** CloudZero generates or controls the record keys — machine-assigned IDs, system timestamps. The API guarantees idempotent replacement.
+
+**Use delete-then-replace when:** Users supply string keys (element names, custom identifiers). User-supplied keys can drift: elements get renamed, removed, or re-keyed. A plain `/replace` in this case silently accumulates stale records alongside new ones.
+
+**Decision flow:**
+
+1. **Delete** — call the stream delete endpoint to remove all records for the target window or element.
+2. **Validate empty** — query the stream and confirm zero records remain for that scope. Do not proceed if records are still present; the delete may be async.
+3. **Upload** — send the fresh records via the telemetry API.
+
+Never delete without confirming emptiness before re-uploading. A partial delete followed by a full upload produces double-counted data in that window.
+
+---
+
+## UI Upload Caveat
+
+For streams with **monthly granularity**, prefer the API `/replace` endpoint over the UI CSV upload tool.
+
+The UI uploader is designed for hourly and daily records. Monthly-keyed records can be accepted by the UI but may be misaligned during ingestion — the UI normalizes timestamps in ways that shift monthly records to unexpected billing windows. Use the API directly for monthly signals to guarantee the timestamp and granularity are preserved exactly as submitted.
+
+---
+
+## Two-Stage Deploy for New Allocation Chains
+
+When introducing a brand-new telemetry-backed allocation dimension, deploy in two stages:
+
+**Stage 1 — Deploy dimensions and create streams**
+1. Deploy the target dimension (e.g. Environment) and any other prerequisite dimensions referenced in telemetry filters.
+2. Create the telemetry stream and begin sending records.
+3. Wait approximately 45 minutes for CloudZero to ingest and index the stream data.
+
+**Stage 2 — Deploy allocation dimension**
+4. Once the stream has data, deploy the `AllocateByStreams` dimension that references it.
+
+Never create a stream and immediately deploy the allocation dimension in the same operation. An allocation dimension referencing an empty stream will assign 100% of costs to `DefaultValue` (or "Not in Dimension") for every historical window until data arrives. Retroactive reprocessing is expensive and slow.
+
+Also: never create a stream with an empty filter `{}`. An unfiltered stream matches all charges across the entire org and will produce nonsensical proportions. Always include at least one filter key that scopes the stream to the relevant cost pool.
+
+---
+
+## Investigation Methodology
+
+When a telemetry-backed allocation dimension produces unexpected results, start with the telemetry data itself — not the CostFormation YAML.
+
+**Step 1: Query the telemetry stream directly**
+
+Use the telemetry query API with ALL key dimensions in `group_by`:
+
+```json
+{
+  "stream_name": "your-stream",
+  "group_by": ["element_name", "Account", "Service", "User:Defined:YourTargetDim"],
+  "granularity": "DAILY",
+  "start": "2024-01-01T00:00:00Z",
+  "end": "2024-01-08T00:00:00Z"
+}
+```
+
+Look for: missing elements, unexpected element names (case mismatch), gaps in coverage, elements with zero signal that should have signal.
+
+**Step 2: Fix telemetry at the source**
+
+If the telemetry records are wrong — wrong element names, missing time windows, bad filter scope — fix them in the telemetry pipeline. Do not work around bad telemetry by adding compensating conditions in CostFormation. A CostFormation workaround makes the bad telemetry invisible, not correct, and compounds future debugging.
+
+Correct the records, delete the affected window, re-upload, and wait for reprocessing before re-validating.
+
+---
+
+## Validate with the Customer's Cost Metric
+
+Before finalizing any allocation dimension, confirm which cost metric the customer's CloudZero views are configured to use:
+
+- `real_cost` — actual billed charges, no amortization
+- `amortized_cost` — upfront commitment costs spread over the commitment period
+- `invoiced_amortized_cost` — amortized view aligned to invoice periods
+
+Query telemetry results and allocation outputs using the **same metric** the customer uses in their dashboards. Mismatched metrics produce numbers that look wrong even when the allocation logic is correct.
+
+**Cross-check with a second metric when results look off.** If `amortized_cost` allocation looks suspicious, run the same query with `real_cost`. A large divergence between the two usually indicates commitment purchases (Reserved Instances, Savings Plans) are landing in unexpected elements — the allocation dimension is capturing them correctly per the telemetry signal, but the customer's expectations were set against a different cost view.
+```
