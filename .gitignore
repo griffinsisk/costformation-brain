@@ -2,3 +2,5 @@
 .claude/
 reference/
 docs/
+__pycache__/
+*.pyc
