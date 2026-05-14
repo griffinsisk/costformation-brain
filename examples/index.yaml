@@ -1,0 +1,421 @@
+# CostFormation Pattern Library — Index
+# Read this file first to find the right pattern for your task.
+# Each entry has enough metadata to select a pattern without opening the file.
+
+patterns:
+
+  # --- Basic patterns ---
+
+  - id: account-mapping-basic
+    file: patterns/account-mapping-basic.yaml
+    complexity: basic
+    tags: [account, Group, mapping, Child, quoted-ids]
+    use_when: >
+      Map AWS account IDs to human-readable names when your org has a small,
+      stable set of accounts. Pair with Child: Service for per-account drill-down.
+    prerequisites: [account IDs known]
+    teaches: [Group rules, Account source, quoted account IDs, Child hierarchy]
+    anti_patterns:
+      - unquoted account IDs (YAML may coerce 12-digit numbers incorrectly)
+      - omitting Child when the dimension is the primary account-level view
+      - adding DefaultValue unless you want a named catch-all shown in reports
+
+  - id: hierarchy-parent-child
+    file: patterns/hierarchy-parent-child.yaml
+    complexity: basic
+    tags: [hierarchy, child, drill-down, business-unit, team]
+    use_when: >
+      You want Explorer drill-down across three levels of org structure:
+      BusinessUnit → Team → Service. The Child property wires dimensions together automatically.
+    prerequisites:
+      - Tag:business-unit and Tag:team applied to resources, OR
+      - Account-to-team mapping known
+    teaches:
+      - Child property chains dimensions into a drill-down hierarchy
+      - Each dimension in the chain sets Child to the next level
+      - "The leaf dimension (Team) sets Child: Service to drill into AWS services"
+      - Hidden helper dimensions can sit in the chain without appearing in Explorer
+      - Rules in each dimension are independent
+    anti_patterns:
+      - Putting all three levels in one dimension — makes rules unmanageable and breaks drill-down
+      - Forgetting Child on the leaf dimension — users can't drill past Team
+      - Circular Child references (A → B → A) — causes infinite drill-down loop
+
+  - id: tag-based-environment
+    file: patterns/tag-based-environment.yaml
+    complexity: basic
+    tags: [environment, tags, lower-transform, multi-value]
+    use_when: >
+      Classify charges by environment (prod/staging/dev) using a tag. Lower transform
+      normalizes mixed casing so a single Equals covers "Prod", "PROD", and "prod".
+    prerequisites: [Tag:environment or Tag:env applied to resources]
+    teaches:
+      - Dimension-level Source and Transforms inheritance (rules don't repeat them)
+      - Lower transform normalizes casing before conditions evaluate
+      - Multi-value Equals as an OR list for variant spellings
+      - Most-specific rule first (production before staging before dev)
+      - No DefaultValue — "Not in Dimension" is sufficient for most cases
+    anti_patterns:
+      - Writing separate rules for "Prod", "PROD", "prod" — use Lower instead
+      - Using Matches (regex) for simple variant matching — use Equals list
+      - Setting DefaultValue on every dimension — it forces processing every line item
+
+  - id: tag-based-multi-source
+    file: patterns/tag-based-multi-source.yaml
+    complexity: basic
+    tags: [team, ownership, multi-source, k8s, or-conditions]
+    use_when: >
+      Classify charges by team when signals are spread across tags, K8s labels/namespaces,
+      and dedicated accounts. Or conditions capture all three sources in a single rule.
+    prerequisites:
+      - Tag:team or Tag:owner applied to at least some resources
+      - K8s integration enabled (if using K8s conditions)
+      - Account-to-team mapping known for dedicated accounts
+    teaches:
+      - Or conditions combining Tag, K8s, and Account sources
+      - Dimension-level Lower transform applied before all conditions
+      - Covering all signal sources for a concept in one rule
+    anti_patterns:
+      - Only matching Tag:team and missing K8s charges entirely
+      - Writing separate dimensions for tagged vs K8s vs account spend
+      - Using Contains on Tag:team when team names don't embed in longer strings
+
+  - id: tag-groupby-with-fallback
+    file: patterns/tag-groupby-with-fallback.yaml
+    complexity: basic
+    tags: [groupby, coalesce, fallback, account-mapping, hidden-helper]
+    use_when: >
+      GroupBy a tag (e.g. Tag:cost-center) so each unique value becomes its own element,
+      but fall back to a hidden account-mapping helper when the tag is absent.
+    prerequisites:
+      - Tag:cost-center applied to most (but not all) resources
+      - Account-to-cost-center mapping known for untagged accounts
+    teaches:
+      - CoalesceSources picks the first non-null value across Sources
+      - Hidden AccountToCostCenter helper avoids copy-pasting account lists
+      - GroupBy passthrough creates one element per unique value without enumerating names
+      - No DefaultValue on hidden dimensions used as fallback sources
+      - "Hide: true keeps helper out of Explorer but available to other dims"
+    anti_patterns:
+      - Duplicating the account list in every cost center rule instead of referencing a hidden helper
+      - Setting DefaultValue on AccountToCostCenter — forces all line items through the dimension
+      - Using DefaultValue on the visible dimension when "Not in Dimension" is sufficient
+
+  - id: genai-model-aliasing
+    file: patterns/genai-model-aliasing.yaml
+    complexity: basic
+    tags: [genai, model, beginswith, aliasing, prefix-collision, groupby]
+    use_when: >
+      Classify AI/ML API charges by model family. Model identifiers include version suffixes
+      that should roll up to a canonical name; a GroupBy passthrough catches future unknown models.
+    prerequisites:
+      - Resource names or tags contain model identifiers
+      - CZ:Defined:ResourceSummaryDisplay carries model name patterns, OR
+      - Tag:model-id applied to AI API resources
+    teaches:
+      - BeginsWith for prefix-based model family matching
+      - Most-specific-first ordering prevents prefix collision (gpt-4o before gpt-4)
+      - GroupBy passthrough at bottom as a catch-all for unknown models
+      - Name aliasing — billing display name differs from model identifier
+      - No DefaultValue needed — GroupBy passthrough handles new models
+    anti_patterns:
+      - Placing shorter prefixes (gpt-4) before longer ones (gpt-4o) — shorter rule swallows more-specific model
+      - Using Matches (regex) for simple prefix matching — use BeginsWith
+      - Omitting the GroupBy passthrough — new model launches become invisible
+      - One rule per exact model version — creates hundreds of elements exceeding the 200-element threshold
+
+  - id: date-range-scoped-rules
+    file: patterns/date-range-scoped-rules.yaml
+    complexity: basic
+    tags: [date-range, migration, time-bounded, fordaterange]
+    use_when: >
+      Apply different classification logic during a specific window — legacy account charges
+      map to "Legacy" before a cutover date and to the normal team after it.
+    prerequisites:
+      - Known cutover / migration date
+      - Account IDs for legacy and target environments
+    teaches:
+      - ForDateRange scopes a rule to a time window (From/Until, inclusive)
+      - Rules before and after the migration run in normal evaluation order
+      - A rule with no ForDateRange always matches regardless of date
+      - Most-specific rules (date-bounded) come before the generic fallback
+      - ForDateRange combines with other conditions using And for precision
+    anti_patterns:
+      - Publishing a separate CostFormation file per time period — use date ranges in one definition
+      - Forgetting that ForDateRange is inclusive on both ends — double-check boundary dates
+      - Using ForDateRange on high-frequency changing rules — consider a tag-based approach instead
+
+  - id: allocation-rules-even-split
+    file: patterns/allocation-rules-even-split.yaml
+    complexity: basic
+    tags: [allocation, AllocateByRules, even-split, tag-filter]
+    use_when: >
+      Divide a pool of spend equally across a fixed set of cost categories with no usage
+      signal to weight by. Common for shared platform costs, licenses, or support contracts.
+    prerequisites: [CostCategory dimension published]
+    teaches:
+      - AllocateByRules with Even method (equal split across elements)
+      - Tag-based SpendToAllocate scoping
+      - AcrossElements with GroupBy + Equals filter to limit target elements
+    anti_patterns:
+      - Using Proportional when spend ratios aren't meaningful for the use case
+      - Broad SpendToAllocate without tag/service/account scoping
+      - DefaultValue on the allocation dim itself
+
+  # --- Intermediate patterns ---
+
+  - id: account-mapping-large-scale
+    file: patterns/account-mapping-large-scale.yaml
+    complexity: intermediate
+    tags: [account, Group, mapping, Child, quoted-ids, inline-comments, sections]
+    use_when: >
+      Map a large number of AWS accounts to human-readable names grouped into business
+      units. Section comments and inline comments keep the mapping auditable at scale.
+    prerequisites: [account IDs known, accounts grouped by business unit]
+    teaches:
+      - Section comment blocks for large rule lists
+      - Inline comments on account IDs for traceability
+      - Expanded list format required when inline comments exist
+      - Child hierarchy for drill-down
+    anti_patterns:
+      - Collapsing to array notation when inline comments are present
+      - Mixing section comment styles within one file
+      - Unquoted 12-digit account IDs
+
+  - id: allocation-rules-proportional
+    file: patterns/allocation-rules-proportional.yaml
+    complexity: intermediate
+    tags: [allocation, AllocateByRules, proportional, hidden-dim, cross-cloud, scoping]
+    use_when: >
+      Split shared infrastructure costs proportionally across cost categories based on
+      existing spend ratios. No telemetry required — allocation weights by current spend.
+    prerequisites: [CostCategory dimension published with correct element assignments]
+    teaches:
+      - AllocateByRules with Proportional method
+      - Narrowly scoped SpendToAllocate (cloud provider + account filter)
+      - AcrossElements with GroupBy and condition filters
+      - Hidden input dimension without DefaultValue (avoids processing all line items)
+      - Cross-cloud allocation (GCP spend allocated proportionally to AWS categories)
+    anti_patterns:
+      - Broad SpendToAllocate without service/account scoping — causes row explosion
+      - DefaultValue on hidden input dims — forces processing every line item
+      - Overlapping SpendToAllocate across multiple allocation dims
+
+  - id: allocation-telemetry-basic
+    file: patterns/allocation-telemetry-basic.yaml
+    complexity: intermediate
+    tags: [allocation, telemetry, AllocateByStreams, hidden-dim, coalesce]
+    use_when: >
+      Split shared costs using external usage data from telemetry streams. Distribute
+      shared compute or databases to teams proportionally based on real usage metrics.
+    prerequisites: [telemetry stream created, target dimension published]
+    teaches:
+      - AllocateByStreams with a dedicated hidden target dimension
+      - "Hidden allocation dims (Hide: true + Type: Allocation)"
+      - CoalesceSources priority ordering (allocation first, direct second)
+      - Telemetry filter keys (custom:<DimName> not User:Defined:<DimId>)
+      - "3-step pipeline: target → allocation → combined view"
+    anti_patterns:
+      - SpendToAllocate with AllocateByStreams — filtering happens via stream filter keys
+      - DefaultValue on allocation target dims — forces processing every line item
+      - Layered allocations (allocation referencing another allocation's output as Source)
+
+  - id: k8s-namespace-to-team
+    file: patterns/k8s-namespace-to-team.yaml
+    complexity: intermediate
+    tags: [K8s, namespace, workload, Group, team, container]
+    use_when: >
+      Map Kubernetes namespace costs to engineering teams when clusters follow a
+      namespace-per-team convention. K8s:Workload is added as a secondary Or signal
+      for workloads in shared namespaces.
+    prerequisites:
+      - K8s cost allocation enabled in CloudZero
+      - Namespaces follow team naming conventions (e.g., platform-*, data-*)
+      - K8s agent deployed and reporting namespace/workload metadata
+    teaches:
+      - K8s:Namespace source for namespace-to-team mapping
+      - K8s:Workload as a secondary signal inside an Or condition
+      - Using BeginsWith for namespace prefix patterns
+      - Combining Equals and BeginsWith inside a single Or
+      - Most-specific rules first (exact namespace matches before prefix matches)
+    anti_patterns:
+      - Using only K8s:Namespace and missing workloads deployed in shared namespaces
+      - No fallback for non-K8s charges — this pattern is intentionally K8s-scoped
+      - Matching namespaces with Contains when BeginsWith is sufficient — Contains is more expensive
+
+  - id: k8s-label-to-product
+    file: patterns/k8s-label-to-product.yaml
+    complexity: intermediate
+    tags: [K8s, label, GroupBy, product, CoalesceSources, Title, override]
+    use_when: >
+      Map Kubernetes workload costs to products using pod labels applied inconsistently
+      across clusters. CoalesceSources covers all label variants; a Group rule overrides
+      known mislabeled workloads before the GroupBy fires.
+    prerequisites:
+      - K8s cost allocation enabled in CloudZero
+      - "At least one of these labels present on pods: app.kubernetes.io/part-of, product, app"
+      - Known mislabeled workload names documented (for override rules)
+    teaches:
+      - GroupBy with CoalesceSources across multiple K8s:Label variants
+      - Title transform to capitalize label values for display
+      - Override Group rule before GroupBy to fix mislabeled workloads
+      - "First-match-wins ordering: specific overrides above the catch-all GroupBy"
+      - K8s:Label:<LabelName> source syntax with dotted label keys
+    anti_patterns:
+      - Putting the GroupBy before override Group rules — GroupBy will match first
+      - Writing one Group rule per product instead of GroupBy — brittle for new products
+      - Omitting CoalesceSources when using multiple Sources
+
+  # --- Advanced patterns ---
+
+  - id: allocation-chain-multi-stream
+    file: patterns/allocation-chain-multi-stream.yaml
+    complexity: advanced
+    tags: [allocation, telemetry, multi-stream, coalesce, hidden-dim, AllocateByStreams]
+    use_when: >
+      Different cost pools (e.g. compute vs. storage) have separate telemetry streams.
+      Each pool needs its own hidden target and allocation dimension; a combined visible
+      dimension merges all allocated costs into one unified view.
+    prerequisites: [telemetry streams created for each cost pool]
+    teaches:
+      - Multiple independent allocation pipelines (no layering)
+      - Common "Spend to Allocate" pattern via hidden target dims (prevents overlap)
+      - CoalesceSources merging multiple allocation outputs
+      - Each allocation dim is independent — no allocation references another
+    anti_patterns:
+      - Layered allocations (allocation referencing another allocation's output)
+      - Overlapping SpendToAllocate across allocation dims — use hidden target dims
+      - SpendToAllocate with AllocateByStreams — filtering happens via stream filter keys
+      - DefaultValue on hidden target dims
+
+  - id: allocation-combined-coalesce
+    file: patterns/allocation-combined-coalesce.yaml
+    complexity: advanced
+    tags: [coalesce, GroupBy, multi-source, priority, allocation-output, fallback]
+    use_when: >
+      Multiple allocation and direct-attribution dimensions each classify charges into the
+      same elements. You need a single unified dimension with a defined priority order.
+    prerequisites: [all referenced User:Defined dimensions published]
+    teaches:
+      - CoalesceSources with 5 sources and explicit priority ordering
+      - GroupBy reading allocation dim output (not layering — safe)
+      - Group rule to remap specific values (e.g. "unknown" → "R&D")
+      - Child dimension for drill-down
+      - Combining multiple allocation outputs with direct tag-based dims
+    anti_patterns:
+      - Layered allocations (allocation referencing allocation in SpendToAllocate)
+      - "Forgetting CoalesceSources: true — without it, multiple sources create duplicate elements"
+      - Putting direct sources before allocation sources — allocated costs get overridden
+
+  - id: allocation-telemetry-split-pipeline
+    file: patterns/allocation-telemetry-split-pipeline.yaml
+    complexity: advanced
+    tags: [allocation, telemetry, split-transform, hidden-dim, hierarchy, AllocateByStreams]
+    use_when: >
+      Your telemetry stream sends composite element_name values packed into a single
+      delimited string. You need to split these into separate dimensions for independent
+      filtering and drill-down in Explorer.
+    prerequisites: [telemetry stream created with composite element_name format]
+    teaches:
+      - Split transform with Index to extract positional fields from delimited strings
+      - Chaining GroupBy dims off an allocation output (not layering — reading output)
+      - Parent→Child dimension hierarchy from split fields
+      - Hidden intermediate dimensions for pipeline stages
+    anti_patterns:
+      - Layered allocations (allocation referencing another allocation)
+      - Using Matches (regex) to parse delimited strings — Split transform is cleaner
+      - SpendToAllocate with AllocateByStreams — filtering happens via stream filter keys
+
+  - id: complex-conditions-and-or-not
+    file: patterns/complex-conditions-and-or-not.yaml
+    complexity: advanced
+    tags: [and, or, not, nesting, lower-transform, conditions, tag-variants]
+    use_when: >
+      Classify charges using complex boolean logic — combining required conditions (And),
+      alternative signals (Or), and explicit exclusions (Not) across inconsistent tag values.
+    prerequisites:
+      - Tag:component, Tag:Component, Tag:layer applied inconsistently
+      - Account IDs for production and non-production accounts known
+    teaches:
+      - And wraps a list of conditions that ALL must be true
+      - Or wraps alternatives where ANY one match is sufficient
+      - Not wraps conditions that must be FALSE for the rule to match
+      - Lower transform inside Conditions applies to a single source only
+      - Combining And + Or and And + Not for compound exclusion logic
+      - "Rule ordering: most-specific (tightest And) rules come first"
+    anti_patterns:
+      - Writing separate rules for each tag casing variant instead of using Lower + single Equals
+      - Placing Not at the top level when it should be inside an And
+      - Forgetting that multiple top-level conditions in a rule are OR'd — nest under And if all must hold
+
+  - id: dimension-chaining-hidden-helpers
+    file: patterns/dimension-chaining-hidden-helpers.yaml
+    complexity: advanced
+    tags: [hidden-helper, chaining, user-defined-source, and-conditions, groupby]
+    use_when: >
+      A base classification (e.g. Production vs Non-Production) is needed by multiple
+      visible dimensions. Encode the base logic once in a hidden dimension and reference
+      it via User:Defined: to avoid duplicating account lists and conditions.
+    prerequisites:
+      - Account-to-environment mapping known (or Tag:env applied)
+      - Tag:team applied to resources for cross-cutting team/env elements
+    teaches:
+      - "Hide: true keeps helpers out of Explorer while still being referenceable"
+      - User:Defined:<Id> is the correct prefix for referencing custom dims
+      - "And conditions combining a User:Defined: source with a Tag: source produce cross-product element names"
+      - "GroupBy from a User:Defined: source inherits the helper's element names without re-enumerating"
+      - "Both visible dims set Child: Service for drill-down"
+      - Hidden dims should NOT set Child — they are never displayed
+    anti_patterns:
+      - Copy-pasting account conditions into every consumer dimension instead of referencing the shared hidden helper
+      - Setting DefaultValue on the hidden helper — forces every line item through it
+      - Referencing a hidden dim before it is published (order matters in the file)
+
+  - id: format-transform-concatenation
+    file: patterns/format-transform-concatenation.yaml
+    complexity: advanced
+    tags: [groupby, format, split, transform, pvc, ecr, normalize]
+    use_when: >
+      Derive a shorter canonical element name from a longer resource identifier by splitting
+      on a delimiter and reconstructing with a fixed suffix or prefix (e.g. PVC names, ECR paths).
+    prerequisites:
+      - Resources follow a consistent naming pattern with a predictable delimiter
+      - CZ:Defined:ResourceSummaryDisplay values follow the expected pattern
+      - Conditions must scope the GroupBy to only matching resources
+    teaches:
+      - Format is a GroupBy rule parameter, NOT a condition parameter
+      - Format uses {0} as the placeholder for the extracted Split segment
+      - "Split Index is 1-based: Index: 1 = first segment"
+      - Format lets you append or prepend static text around the extracted value
+      - Conditions inside a GroupBy rule scope which charges the rule applies to
+      - Normalize before Split lowercases and removes special chars
+    anti_patterns:
+      - Using Format as a condition parameter — it belongs on the GroupBy rule only
+      - Omitting Conditions on the GroupBy — non-matching resources produce undefined output
+      - Using Matches to parse structured resource names when Split + Format is sufficient
+
+  - id: resource-summary-override
+    file: patterns/resource-summary-override.yaml
+    complexity: advanced
+    tags: [override, resource-summary, hide, multi-source, and-conditions, or-conditions]
+    use_when: >
+      CloudZero's default ResourceSummaryDisplay grouping doesn't match your naming
+      conventions. Use Override to replace the built-in grouping logic; always hide
+      the override dimension so it operates silently.
+    prerequisites:
+      - Understanding of which resource types need custom grouping
+      - Account IDs for the accounts whose resources you are reshaping
+      - CZ:Defined:BillingLineItem values to scope to Usage charges only
+    teaches:
+      - "Override: CZ:Defined:ResourceSummaryID_Override at the dimension header"
+      - "Hide: true is mandatory for override dims — they should never appear in Explorer"
+      - Sources (plural) array syntax for multi-source matching with first-non-null
+      - Account Equals with an array of IDs for multi-account scoping
+      - Nested Or inside And for complex inclusion matching
+      - CZ:Defined:BillingLineItem Contains scopes rules to Usage charges only
+      - CloudProvider BeginsWith AWS limits the rule to AWS line items
+    anti_patterns:
+      - "Omitting Hide: true on an override dim — causes duplicate entries"
+      - Using Override without scoping conditions — rewrites ALL resources unexpectedly
+      - Using raw ResourceId as a condition source — high cardinality and expensive in Snowflake
+      - "Forgetting CZ:Defined: prefix on BillingLineItem"
