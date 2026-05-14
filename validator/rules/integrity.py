@@ -8,7 +8,7 @@ import pathlib
 import re
 from typing import List
 
-import yaml
+from ruamel.yaml import YAML
 
 from validator.diagnostic import Diagnostic, Severity
 from validator.rules import Rule
@@ -57,7 +57,7 @@ class IndexConsistencyRule(Rule):
             return diagnostics
 
         with index_path.open() as fh:
-            index_data = yaml.safe_load(fh)
+            index_data = YAML().load(fh)
 
         patterns_dir = examples_dir / "patterns"
         entries = index_data.get("patterns", []) if index_data else []
@@ -119,7 +119,7 @@ class MetadataIncompleteRule(Rule):
             return diagnostics
 
         with index_path.open() as fh:
-            index_data = yaml.safe_load(fh)
+            index_data = YAML().load(fh)
 
         entries = index_data.get("patterns", []) if index_data else []
 
