@@ -1,0 +1,15 @@
+Dimensions:
+  Environment:
+    Name: Environment
+    Child: Service
+    Rules:
+      - Type: Group
+        Name: Production
+        Conditions:
+          - Source: Tag:environment
+            Equals: prod
+      - Type: Group
+        Name: Development
+        Conditions:
+          - Source: Tag:environment
+            Equals: dev
