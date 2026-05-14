@@ -1,0 +1,13 @@
+Dimensions:
+  Bad:
+    Name: Bad Dimension
+    Rules:
+      - Name: No Type Here
+        Conditions:
+          - Source: Tag:team
+            Equals: alpha
+      - Type: Group
+        Name: Good Rule
+        Conditions:
+          - Source: Tag:team
+            Equals: beta

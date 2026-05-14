@@ -1,0 +1,14 @@
+Dimensions:
+  AccountName:
+    Name: Account Name
+    Rules:
+      - Type: Group
+        Name: Prod
+        Conditions:
+          - Source: Account
+            Equals: 123456789012
+      - Type: Group
+        Name: Dev
+        Conditions:
+          - Source: Account
+            Equals: '234567890123'
