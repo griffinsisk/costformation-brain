@@ -1,0 +1,102 @@
+# --- metadata ---
+# pattern_id: k8s-namespace-to-team
+# name: K8s Namespace to Team Mapping
+# complexity: intermediate
+# tags: [K8s, namespace, workload, Group, team, container]
+# source_pattern: [customer-d]
+# use_when: >
+#   Map Kubernetes namespace costs to engineering teams when your clusters
+#   follow a namespace-per-team or namespace-per-team-environment convention.
+#   K8s:Namespace is the primary signal. K8s:Workload is added in an Or
+#   condition to catch workloads that are deployed across shared namespaces
+#   but carry the team name in the workload identifier itself.
+#   Non-K8s charges (RDS, S3, etc.) associated with these teams should be
+#   covered by a separate tag or account condition — this pattern focuses
+#   solely on container spend.
+# prerequisites:
+#   - K8s cost allocation enabled in CloudZero
+#   - Namespaces follow team naming conventions (e.g., platform-*, data-*)
+#   - K8s agent deployed and reporting namespace/workload metadata
+# teaches:
+#   - K8s:Namespace source for namespace-to-team mapping
+#   - K8s:Workload as a secondary signal inside an Or condition
+#   - Using BeginsWith for namespace prefix patterns
+#   - Combining Equals and BeginsWith inside a single Or
+#   - Most-specific rules first (exact namespace matches before prefix matches)
+# anti_patterns:
+#   - Using only K8s:Namespace and missing workloads deployed in shared namespaces
+#   - No fallback for non-K8s charges — this pattern is intentionally K8s-scoped;
+#     add tag/account rules in a broader Team dimension if you need full coverage
+#   - Matching namespaces with Contains when BeginsWith is sufficient — Contains
+#     is a substring scan and more expensive
+
+Dimensions:
+  K8sTeam:
+    Name: K8s Team
+    Child: Service
+    Rules:
+      - Type: Group
+        Name: Platform Engineering
+        Conditions:
+          - Or:
+              - Source: K8s:Namespace
+                Equals:
+                  - platform
+                  - platform-system
+                  - platform-tooling
+                  - infra
+                  - kube-system
+              - Source: K8s:Namespace
+                BeginsWith: platform-
+              - Source: K8s:Workload
+                BeginsWith: platform-
+
+      - Type: Group
+        Name: Data Engineering
+        Conditions:
+          - Or:
+              - Source: K8s:Namespace
+                Equals:
+                  - data
+                  - data-pipeline
+                  - data-streaming
+                  - spark
+                  - airflow
+              - Source: K8s:Namespace
+                BeginsWith: data-
+              - Source: K8s:Workload
+                BeginsWith: data-
+
+      - Type: Group
+        Name: Application Services
+        Conditions:
+          - Or:
+              - Source: K8s:Namespace
+                Equals:
+                  - app
+                  - apps
+                  - application
+                  - backend
+                  - api
+              - Source: K8s:Namespace
+                BeginsWith: app-
+              - Source: K8s:Workload
+                BeginsWith: app-
+
+      - Type: Group
+        Name: Observability
+        Conditions:
+          - Or:
+              - Source: K8s:Namespace
+                Equals:
+                  - monitoring
+                  - observability
+                  - logging
+                  - tracing
+                  - metrics
+                  - grafana
+                  - prometheus
+              - Source: K8s:Namespace
+                BeginsWith: obs-
+              - Source: K8s:Workload
+                BeginsWith: obs-

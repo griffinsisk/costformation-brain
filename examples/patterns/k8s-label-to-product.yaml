@@ -1,0 +1,71 @@
+# --- metadata ---
+# pattern_id: k8s-label-to-product
+# name: K8s Label to Product Mapping
+# complexity: intermediate
+# tags: [K8s, label, GroupBy, product, CoalesceSources, Title, override]
+# use_when: >
+#   Map Kubernetes workload costs to products using pod labels. Teams apply
+#   labels inconsistently across clusters — some use app.kubernetes.io/part-of,
+#   others use a bare product label, and older workloads rely on app alone.
+#   CoalesceSources picks the first non-null value across all three variants,
+#   so a single GroupBy rule covers the full label landscape without duplicating
+#   conditions per product name.
+#   A Group rule at the top handles known mislabeled workloads (e.g., a
+#   workload with app=legacy-monolith that should be attributed to Checkout)
+#   before the GroupBy fires — override rules must appear before GroupBy rules
+#   because first match wins.
+# prerequisites:
+#   - K8s cost allocation enabled in CloudZero
+#   - At least one of these labels present on pods:
+#       app.kubernetes.io/part-of, product, app
+#   - Known mislabeled workload names documented (for override rules)
+# teaches:
+#   - GroupBy with CoalesceSources across multiple K8s:Label variants
+#   - Title transform to capitalize label values for display
+#   - Override Group rule before GroupBy to fix mislabeled workloads
+#   - First-match-wins ordering: specific overrides above the catch-all GroupBy
+#   - K8s:Label:<LabelName> source syntax with dotted label keys
+# anti_patterns:
+#   - Putting the GroupBy before override Group rules — GroupBy will match first
+#     and the override is never reached
+#   - Writing one Group rule per product instead of GroupBy — brittle, requires
+#     a YAML change every time a new product label value appears
+#   - Omitting CoalesceSources when using multiple Sources — without it, a rule
+#     evaluating multiple sources picks the last non-null rather than first
+
+Dimensions:
+  K8sProduct:
+    Name: K8s Product
+    Child: Service
+    Rules:
+      # Override rules — correct known mislabeled workloads before GroupBy fires.
+      # Add one Group rule per mislabeled workload. First match wins.
+      - Type: Group
+        Name: Checkout
+        Conditions:
+          - Or:
+              - Source: K8s:Workload
+                Equals:
+                  - legacy-monolith
+                  - checkout-v1-deprecated
+              - Source: K8s:Namespace
+                Equals: checkout-legacy
+
+      - Type: Group
+        Name: Search
+        Conditions:
+          - Source: K8s:Workload
+            Equals:
+              - search-old
+              - elasticsearch-search-proxy
+
+      # GroupBy rule — dynamically groups by the first non-null label value.
+      # Covers all products without listing them explicitly.
+      - Type: GroupBy
+        Sources:
+          - K8s:Label:app.kubernetes.io/part-of
+          - K8s:Label:product
+          - K8s:Label:app
+        CoalesceSources: true
+        Transforms:
+          - Type: Title
