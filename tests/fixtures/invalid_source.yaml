@@ -1,0 +1,16 @@
+Dimensions:
+  Bad:
+    Name: Bad Source
+    Rules:
+      - Type: Group
+        Name: Team Alpha
+        Conditions:
+          - Source: Environment
+            Equals: production
+      - Type: Group
+        Name: Support
+        Conditions:
+          - Source: CZ:Defined:Account
+            Equals: '111111111111'
+      - Type: GroupBy
+        Source: ResourceId

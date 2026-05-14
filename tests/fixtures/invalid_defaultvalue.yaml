@@ -1,0 +1,23 @@
+Dimensions:
+  SharedSpend:
+    Name: Shared Spend
+    Hide: true
+    DefaultValue: Shared
+    Rules:
+      - Type: Group
+        Name: Team Alpha
+        Conditions:
+          - Source: Tag:team
+            Equals: alpha
+
+  SharedAllocation:
+    Name: Shared Allocation
+    Type: Allocation
+    Hide: true
+    AllocateByStreams:
+      Streams:
+        - test_stream
+      SpendToAllocate:
+        Conditions:
+          - Source: Tag:pool
+            Equals: shared
