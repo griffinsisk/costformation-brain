@@ -6,6 +6,7 @@ When writing, reviewing, or debugging CloudZero CostFormation YAML:
 4. Always read `costformation-brain/performance-rules.md` before generating any dimension definition.
 5. Always read `costformation-brain/allocation-design.md` before writing any Allocation Dimension.
 6. Consult the relevant corpus file from `costformation-brain/` based on the task — the routing table in SKILL.md tells you which file to read.
+7. Check `costformation-brain/examples/index.yaml` for a matching pattern before writing a dimension from scratch.
 
 Do NOT write CostFormation YAML from memory or general knowledge. The corpus contains CloudZero-specific syntax, performance rules from the engineering team that maintains Snowflake, and real-world patterns. General YAML knowledge will produce syntactically plausible but incorrect output.
 

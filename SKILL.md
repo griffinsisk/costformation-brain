@@ -16,12 +16,13 @@ Consult the relevant file based on what you're working on:
 | Understanding core terminology | `concepts.md` |
 | File structure and YAML skeleton | `file-structure.md` |
 | Source prefixes and available sources | `sources.md` |
-| Writing conditions and transforms | `conditions-and-transforms.md` |
+| Conditions, transforms, and formatting conventions | `conditions-and-transforms.md` |
 | Choosing and writing dimension types | `dimension-types.md` |
 | Allocation dimension design and anti-patterns | `allocation-design.md` |
 | Telemetry API and stream design | `telemetry.md` + `sources.md` |
 | Performance rules and Snowflake cost impact | `performance-rules.md` ← always read before any definition |
 | Real worked examples | `examples.md` |
+| Finding a pattern example to start from | `examples/index.yaml` → `examples/patterns/` |
 | Customer org context (accounts, tags, goals) | `my-org/index.yaml` → `my-org/` |
 
 ## Common Tasks
@@ -38,6 +39,7 @@ Consult the relevant file based on what you're working on:
 2. Read `my-org/index.yaml` first for a compact summary, then `my-org/context.md` (always). Load full detail files as needed.
 3. Read `performance-rules.md` before generating any dimension definition.
 4. Read `allocation-design.md` before writing any Allocation Dimension.
+5. Check `examples/index.yaml` for a matching pattern before writing a dimension from scratch.
 
 **When the user provides business context** (team mappings, CSVs, org charts, goals, constraints), persist it to `my-org/context.md` so it survives across sessions.
 

@@ -79,6 +79,8 @@ curl -X POST -H "Authorization: Bearer $CZ_API_KEY" \
 
 The instruction file you copied in step 3 forces the agent to read `SKILL.md` before writing any CostFormation YAML. That file contains non-negotiable rules (source prefixes, performance constraints, allocation design) and a routing table that points to 9 corpus files covering syntax, conditions and transforms, telemetry, allocation design, and real-world examples.
 
+The `examples/` directory contains 20 structured CostFormation patterns — from basic account mappings to advanced allocation chains — each with metadata that helps the agent select the right starting point. The agent checks `examples/index.yaml` before writing any dimension from scratch.
+
 The `my-org/` directory stores your org-specific context. It's auto-populated from your costformation file and the CloudZero MCP — you don't need to fill it in manually. The agent refreshes it whenever you pull a new costformation version.
 
 Without the instruction file, agents confidently generate wrong CostFormation syntax from general knowledge. The output looks plausible but uses incorrect structure. The brain fixes this.
