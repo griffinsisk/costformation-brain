@@ -1,0 +1,63 @@
+# --- metadata ---
+# pattern_id: tag-based-environment
+# name: Tag-Based Environment Classification
+# complexity: basic
+# tags: [environment, tags, lower-transform, multi-value]
+# use_when: >
+#   You want to classify charges by environment (prod/staging/dev/etc.)
+#   using a tag. Teams apply tags inconsistently — mixed casing is common.
+#   Lower transform at the dimension level normalizes all tag values before
+#   any condition evaluates them, so a single Equals covers "Prod", "PROD",
+#   and "prod" in one rule without duplication.
+# prerequisites: [Tag:environment or Tag:env applied to resources]
+# teaches:
+#   - Dimension-level Source and Transforms inheritance (rules don't repeat them)
+#   - Lower transform normalizes casing before conditions evaluate
+#   - Multi-value Equals as an OR list for variant spellings
+#   - Most-specific rule first (production before staging before dev)
+#   - No DefaultValue — "Not in Dimension" is sufficient for most cases
+# anti_patterns:
+#   - Writing separate rules for "Prod", "PROD", "prod" — use Lower instead
+#   - Using Matches (regex) for simple variant matching — use Equals list
+#   - Setting DefaultValue on every dimension — it forces processing every line item
+
+Dimensions:
+  Environment:
+    Name: Environment
+    Child: Service
+    Source: Tag:environment
+    Transforms:
+      - Type: Lower
+    Rules:
+      - Type: Group
+        Name: Production
+        Conditions:
+          - Equals:
+              - prod
+              - production
+              - prd
+
+      - Type: Group
+        Name: Staging
+        Conditions:
+          - Equals:
+              - staging
+              - stage
+              - stg
+
+      - Type: Group
+        Name: Development
+        Conditions:
+          - Equals:
+              - dev
+              - development
+              - develop
+
+      - Type: Group
+        Name: QA
+        Conditions:
+          - Equals:
+              - qa
+              - test
+              - testing
+              - uat

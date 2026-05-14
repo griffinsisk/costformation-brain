@@ -1,0 +1,104 @@
+# --- metadata ---
+# pattern_id: date-range-scoped-rules
+# name: Date-Range Scoped Rules for Migration Windows
+# complexity: basic
+# tags: [date-range, migration, time-bounded, fordaterange]
+# use_when: >
+#   You are mid-migration and need different classification logic to apply
+#   during a specific window — for example, charges in a legacy account
+#   should map to "Legacy" before the cutover date and to the normal team
+#   after it. ForDateRange lets a single dimension handle both old and new
+#   worlds without publishing two separate definitions or using a manual
+#   override workflow.
+#
+#   Also useful for: fiscal year reorg (teams renamed on a date), pricing
+#   tier changes, promotional cost periods, or tagging campaigns that start
+#   on a known date.
+# prerequisites:
+#   - Known cutover / migration date
+#   - Account IDs for legacy and target environments
+# teaches:
+#   - ForDateRange scopes a rule to a time window (From/Until, inclusive)
+#   - Rules before and after the migration run in normal evaluation order
+#   - A rule with no ForDateRange always matches regardless of date
+#   - Most-specific rules (date-bounded) come before the generic fallback
+#   - ForDateRange combines with other conditions using And for precision
+# anti_patterns:
+#   - Publishing a separate CostFormation file per time period — messy and
+#     hard to audit; use date ranges in one definition instead
+#   - Forgetting that ForDateRange is inclusive on both ends — double-check
+#     boundary dates when two windows are adjacent
+#   - Using ForDateRange on high-frequency changing rules — if the window
+#     changes weekly, consider a tag-based approach instead
+
+Dimensions:
+  MigrationEnvironment:
+    Name: Migration Environment
+    Child: Service
+    Rules:
+      # ── Pre-migration window: legacy account classified as "Legacy" ──────
+      # Active only during the migration period. Charges from the legacy
+      # account in this window should NOT be attributed to the new teams.
+      - Type: Group
+        Name: Legacy (Pre-Migration)
+        Conditions:
+          - And:
+              - Source: Account
+                Equals:
+                  - '666666666661'
+                  - '666666666662'
+              - ForDateRange:
+                  From: "2024-01-01"
+                  Until: "2024-06-30"
+
+      # ── Migration transition window: legacy + new accounts both active ───
+      # Some services cut over early; capture mixed spend under Transition.
+      - Type: Group
+        Name: Transition
+        Conditions:
+          - And:
+              - Source: Account
+                Equals:
+                  - '666666666661'
+                  - '777777777771'
+              - ForDateRange:
+                  From: "2024-07-01"
+                  Until: "2024-09-30"
+
+      # ── Post-migration: normal production classification ─────────────────
+      # No ForDateRange — these rules apply to all charges outside the
+      # bounded windows above (first-match wins, so bounded rules fire first).
+      - Type: Group
+        Name: Production
+        Conditions:
+          - Or:
+              - Source: Account
+                Equals:
+                  - '777777777771'
+                  - '777777777772'
+              - Source: Tag:environment
+                Equals:
+                  - prod
+                  - production
+
+      - Type: Group
+        Name: Staging
+        Conditions:
+          - Or:
+              - Source: Account
+                Equals: '888888888881'
+              - Source: Tag:environment
+                Equals:
+                  - staging
+                  - stg
+
+      - Type: Group
+        Name: Development
+        Conditions:
+          - Or:
+              - Source: Account
+                Equals: '999999999991'
+              - Source: Tag:environment
+                Equals:
+                  - dev
+                  - development

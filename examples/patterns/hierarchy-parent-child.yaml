@@ -1,0 +1,137 @@
+# --- metadata ---
+# pattern_id: hierarchy-parent-child
+# name: 3-Level Child Hierarchy (BusinessUnit → Team → Service)
+# complexity: basic
+# tags: [hierarchy, child, drill-down, business-unit, team]
+# use_when: >
+#   You want Explorer drill-down across three levels of org structure:
+#   BusinessUnit → Team → Service. The Child property wires dimensions
+#   together so clicking an element in Explorer drills into the next level
+#   automatically. Each level is a separate dimension; the topmost visible
+#   dimension names the first drill target.
+# prerequisites:
+#   - Tag:business-unit and Tag:team applied to resources, OR
+#   - Account-to-team mapping known
+# teaches:
+#   - Child property chains dimensions into a drill-down hierarchy
+#   - Each dimension in the chain sets Child to the next level
+#   - The leaf dimension (Team) sets Child: Service to drill into AWS services
+#   - Hidden helper dimensions can sit in the chain without appearing in
+#     Explorer — only the topmost non-hidden dimension needs no Hide: true
+#   - Rules in each dimension are independent; adding a new team only
+#     requires editing the Team dimension, not BusinessUnit
+# anti_patterns:
+#   - Putting all three levels in one dimension — makes rules unmanageable
+#     and breaks drill-down behavior
+#   - Forgetting Child on the leaf dimension — users can't drill past Team
+#   - Circular Child references (A → B → A) — causes infinite drill-down loop
+
+Dimensions:
+  BusinessUnit:
+    Name: Business Unit
+    Child: Team
+    Rules:
+      - Type: Group
+        Name: Product Engineering
+        Conditions:
+          - Source: Account
+            Equals:
+              - '111111111111'
+              - '111111111112'
+              - '111111111113'
+              - '222222222221'
+              - '222222222222'
+
+      - Type: Group
+        Name: Data & Analytics
+        Conditions:
+          - Source: Account
+            Equals:
+              - '333333333331'
+              - '333333333332'
+              - '444444444441'
+
+      - Type: Group
+        Name: Corporate IT
+        Conditions:
+          - Source: Account
+            Equals:
+              - '555555555551'
+              - '555555555552'
+
+  Team:
+    Name: Team
+    Child: Service
+    Source: Tag:team
+    Transforms:
+      - Type: Lower
+    Rules:
+      - Type: Group
+        Name: Payments
+        Conditions:
+          - Or:
+              - Equals: payments
+              - Source: Account
+                Equals:
+                  - '111111111111'
+                  - '111111111112'
+
+      - Type: Group
+        Name: Identity
+        Conditions:
+          - Or:
+              - Equals:
+                  - identity
+                  - auth
+              - Source: Account
+                Equals: '111111111113'
+
+      - Type: Group
+        Name: Checkout
+        Conditions:
+          - Or:
+              - Equals: checkout
+              - Source: Account
+                Equals: '222222222221'
+
+      - Type: Group
+        Name: Recommendations
+        Conditions:
+          - Or:
+              - Equals:
+                  - recommendations
+                  - recs
+              - Source: Account
+                Equals: '222222222222'
+
+      - Type: Group
+        Name: Data Platform
+        Conditions:
+          - Or:
+              - Equals:
+                  - data-platform
+                  - data
+              - Source: Account
+                Equals:
+                  - '333333333331'
+                  - '333333333332'
+
+      - Type: Group
+        Name: Analytics
+        Conditions:
+          - Or:
+              - Equals: analytics
+              - Source: Account
+                Equals: '444444444441'
+
+      - Type: Group
+        Name: IT Infrastructure
+        Conditions:
+          - Or:
+              - Equals:
+                  - it-infra
+                  - corporate-it
+              - Source: Account
+                Equals:
+                  - '555555555551'
+                  - '555555555552'

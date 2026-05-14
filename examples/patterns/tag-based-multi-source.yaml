@@ -1,0 +1,100 @@
+# --- metadata ---
+# pattern_id: tag-based-multi-source
+# name: Multi-Source Team Ownership (Tag + K8s + Account)
+# complexity: basic
+# tags: [team, ownership, multi-source, k8s, or-conditions]
+# use_when: >
+#   You need to classify charges by team but signals are spread across
+#   multiple sources: some resources are tagged, some run in K8s workloads
+#   with labels or namespaces, and some accounts belong exclusively to one
+#   team. Or conditions let a single rule capture all three signals so you
+#   never miss charges from any source.
+# prerequisites:
+#   - Tag:team or Tag:owner applied to at least some resources
+#   - K8s integration enabled (if using K8s conditions)
+#   - Account-to-team mapping known for dedicated accounts
+# teaches:
+#   - Or conditions combining Tag, K8s, and Account sources
+#   - Dimension-level Lower transform applied before all conditions
+#   - Covering all signal sources for a concept in one rule
+#   - Ordering rules most-specific-first has no strict requirement here
+#     (accounts are exclusive), but tag + K8s conditions can still overlap
+#     across teams — keep rules mutually exclusive where possible
+# anti_patterns:
+#   - Only matching Tag:team and missing K8s charges entirely
+#   - Writing separate dimensions for tagged vs K8s vs account spend
+#   - Using Contains on Tag:team when team names don't embed in longer strings
+
+Dimensions:
+  Team:
+    Name: Team
+    Child: Service
+    Source: Tag:team
+    Transforms:
+      - Type: Lower
+    Rules:
+      - Type: Group
+        Name: Payments
+        Conditions:
+          - Or:
+              - Equals:
+                  - payments
+                  - payments-team
+              - Source: Tag:owner
+                Equals: payments
+              - Source: K8s:Label:team
+                Equals: payments
+              - Source: K8s:Namespace
+                Equals:
+                  - payments
+                  - payments-prod
+                  - payments-staging
+              - Source: Account
+                Equals:
+                  - '111111111111'
+                  - '111111111112'
+
+      - Type: Group
+        Name: Platform
+        Conditions:
+          - Or:
+              - Equals:
+                  - platform
+                  - platform-team
+                  - infra
+              - Source: Tag:owner
+                Equals: platform
+              - Source: K8s:Label:team
+                Equals: platform
+              - Source: K8s:Namespace
+                Equals:
+                  - platform
+                  - platform-infra
+              - Source: Account
+                Equals:
+                  - '222222222221'
+                  - '222222222222'
+
+      - Type: Group
+        Name: Data
+        Conditions:
+          - Or:
+              - Equals:
+                  - data
+                  - data-platform
+                  - analytics
+              - Source: Tag:owner
+                Equals:
+                  - data
+                  - analytics
+              - Source: K8s:Label:team
+                Equals: data
+              - Source: K8s:Namespace
+                Equals:
+                  - data
+                  - analytics
+                  - data-pipeline
+              - Source: Account
+                Equals:
+                  - '333333333331'
+                  - '333333333332'

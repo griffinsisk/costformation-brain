@@ -1,0 +1,75 @@
+# --- metadata ---
+# pattern_id: tag-groupby-with-fallback
+# name: CoalesceSources GroupBy with Account Fallback
+# complexity: basic
+# tags: [groupby, coalesce, fallback, account-mapping, hidden-helper]
+# use_when: >
+#   You want to GroupBy a tag (e.g. Tag:cost-center) so each unique tag
+#   value becomes its own dimension element — but some accounts have no
+#   tag applied and would fall through. Use a hidden helper dimension that
+#   maps account IDs to cost centers, then CoalesceSources to prefer the tag
+#   but fall back to the account-based mapping when the tag is absent.
+# prerequisites:
+#   - Tag:cost-center applied to most (but not all) resources
+#   - Account-to-cost-center mapping known for untagged accounts
+# teaches:
+#   - CoalesceSources picks the first non-null value across Sources
+#   - Hidden AccountToCostCenter helper avoids copy-pasting account lists
+#     into every rule of the visible dimension
+#   - GroupBy passthrough creates one element per unique source value
+#     without enumerating element names in the YAML
+#   - No DefaultValue on hidden dimensions used as fallback sources
+#   - Hide: true keeps helper out of Explorer but available to other dims
+# anti_patterns:
+#   - Duplicating the account list in every cost center rule instead of
+#     referencing a hidden helper dimension
+#   - Setting DefaultValue on AccountToCostCenter — it forces all line
+#     items through the dimension even when the tag already covers them
+#   - Using DefaultValue on the visible dimension when "Not in Dimension"
+#     is sufficient to surface untagged, unaccounted spend
+
+Dimensions:
+  # Hidden helper: maps untagged accounts to their cost center.
+  # No DefaultValue — charges from unknown accounts surface as
+  # "Not in Dimension" in CostCenter, which flags them for tagging.
+  AccountToCostCenter:
+    Name: Account to Cost Center (helper)
+    Hide: true
+    Source: Account
+    Rules:
+      - Type: Group
+        Name: CC-1001
+        Conditions:
+          - Equals:
+              - '111111111111'
+              - '111111111112'
+
+      - Type: Group
+        Name: CC-1002
+        Conditions:
+          - Equals:
+              - '222222222221'
+              - '222222222222'
+
+      - Type: Group
+        Name: CC-2001
+        Conditions:
+          - Equals:
+              - '333333333331'
+              - '333333333332'
+              - '333333333333'
+
+  # Visible dimension: CoalesceSources prefers the tag, falls back to the
+  # account mapping, then to K8s label as a tertiary signal.
+  CostCenter:
+    Name: Cost Center
+    Child: Service
+    CoalesceSources: true
+    Sources:
+      - Tag:cost-center
+      - User:Defined:AccountToCostCenter
+      - K8s:Label:cost-center
+    Transforms:
+      - Type: Upper
+    Rules:
+      - Type: GroupBy

@@ -1,0 +1,144 @@
+# --- metadata ---
+# pattern_id: genai-model-aliasing
+# name: GenAI Model Name Normalization with BeginsWith
+# complexity: basic
+# tags: [genai, model, beginswith, aliasing, prefix-collision, groupby]
+# use_when: >
+#   You need to classify AI/ML API charges by model family or model name.
+#   Model identifiers in billing data often include version suffixes
+#   (gpt-4o-mini, gpt-4o-2024-08-06) that should roll up to a canonical
+#   name. BeginsWith handles this cleanly — but prefix collision is a real
+#   risk: "gpt-4" matches "gpt-4o", "gpt-4-turbo", and "gpt-4.5" if
+#   placed before them. Always order most-specific prefixes first.
+#
+#   A GroupBy passthrough at the bottom catches any new model names not yet
+#   enumerated, so you never lose visibility when a new model launches.
+# prerequisites:
+#   - Resource names or tags contain model identifiers
+#   - CZ:Defined:ResourceSummaryDisplay carries model name patterns, OR
+#   - Tag:model-id applied to AI API resources
+# teaches:
+#   - BeginsWith for prefix-based model family matching
+#   - Most-specific-first ordering prevents prefix collision
+#     (gpt-5-nano before gpt-5; gpt-4o before gpt-4)
+#   - GroupBy passthrough at bottom as a catch-all for unknown models
+#   - Name aliasing: billing display name differs from model identifier
+#   - No DefaultValue needed — GroupBy passthrough handles new models
+# anti_patterns:
+#   - Placing shorter prefixes (gpt-4) before longer ones (gpt-4o) — the
+#     shorter rule matches first and swallows the more-specific model
+#   - Using Matches (regex) for simple prefix matching — use BeginsWith
+#   - Omitting the GroupBy passthrough — new model launches become invisible
+#   - One rule per exact model version — creates hundreds of elements and
+#     exceeds the 200-element performance threshold
+
+Dimensions:
+  AIModel:
+    Name: AI Model
+    Child: Service
+    Source: CZ:Defined:ResourceSummaryDisplay
+    Transforms:
+      - Type: Lower
+    Rules:
+      # ── OpenAI: most-specific prefixes first within each family ──────────
+
+      # GPT-5 family (longer prefix before gpt-5 alone)
+      - Type: Group
+        Name: GPT-5 Nano
+        Conditions:
+          - BeginsWith: gpt-5-nano
+
+      - Type: Group
+        Name: GPT-5 Mini
+        Conditions:
+          - BeginsWith: gpt-5-mini
+
+      - Type: Group
+        Name: GPT-5
+        Conditions:
+          - BeginsWith: gpt-5
+
+      # GPT-4o family (4o-mini before 4o so the mini doesn't match as plain 4o)
+      - Type: Group
+        Name: GPT-4o Mini
+        Conditions:
+          - BeginsWith: gpt-4o-mini
+
+      - Type: Group
+        Name: GPT-4o
+        Conditions:
+          - BeginsWith: gpt-4o
+
+      # GPT-4 family (turbo, vision before plain gpt-4)
+      - Type: Group
+        Name: GPT-4 Turbo
+        Conditions:
+          - BeginsWith: gpt-4-turbo
+
+      - Type: Group
+        Name: GPT-4 Vision
+        Conditions:
+          - BeginsWith: gpt-4-vision
+
+      - Type: Group
+        Name: GPT-4
+        Conditions:
+          - BeginsWith: gpt-4
+
+      - Type: Group
+        Name: GPT-3.5
+        Conditions:
+          - BeginsWith: gpt-3.5
+
+      # ── Anthropic: haiku before sonnet before claude to avoid swallowing ─
+
+      - Type: Group
+        Name: Claude 3.5 Haiku
+        Conditions:
+          - BeginsWith: claude-3-5-haiku
+
+      - Type: Group
+        Name: Claude 3.5 Sonnet
+        Conditions:
+          - BeginsWith: claude-3-5-sonnet
+
+      - Type: Group
+        Name: Claude 3 Haiku
+        Conditions:
+          - BeginsWith: claude-3-haiku
+
+      - Type: Group
+        Name: Claude 3 Sonnet
+        Conditions:
+          - BeginsWith: claude-3-sonnet
+
+      - Type: Group
+        Name: Claude 3 Opus
+        Conditions:
+          - BeginsWith: claude-3-opus
+
+      - Type: Group
+        Name: Claude
+        Conditions:
+          - BeginsWith: claude
+
+      # ── Google ──────────────────────────────────────────────────────────
+
+      - Type: Group
+        Name: Gemini 1.5 Flash
+        Conditions:
+          - BeginsWith: gemini-1.5-flash
+
+      - Type: Group
+        Name: Gemini 1.5 Pro
+        Conditions:
+          - BeginsWith: gemini-1.5-pro
+
+      - Type: Group
+        Name: Gemini
+        Conditions:
+          - BeginsWith: gemini
+
+      # ── Catch-all: GroupBy passthrough for any unrecognized model ────────
+      # New model names pass through as-is so spend is never lost.
+      - Type: GroupBy

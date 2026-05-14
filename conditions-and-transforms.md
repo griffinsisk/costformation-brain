@@ -241,3 +241,301 @@ Prefer in this order for performance:
 2. `BeginsWith` / `EndsWith` — prefix/suffix, efficient
 3. `Contains` — substring scan, acceptable
 4. `Matches` (regex) — row-by-row, Snowflake `REGEXP_LIKE` — last resort only
+
+---
+
+## Formatting Conventions
+
+Style rules for writing consistent, reviewable CostFormation YAML. Apply these when authoring new definitions or cleaning up existing ones.
+
+---
+
+### Parameter Ordering
+
+Use a fixed parameter order within each block. This makes diffs readable and avoids hunting for fields.
+
+**Dimension header:** `Name` → `Disable` → `Hide` → `Child` → `Source` / `Sources` → `Transforms` → `DefaultValue`
+
+**Condition block:** `Source` / `Sources` → `Transforms` → conditional operator (`Equals`, `BeginsWith`, etc.)
+
+**GroupBy rule:** `Type` → `Source` / `Sources` → `Transforms` → `Format` (concatenation only) → `CoalesceSources` (coalescing only) → `Conditions`
+
+```yaml
+# ✅ Correct — parameters in prescribed order
+- Id: environment
+  Name: Environment
+  Hide: true
+  Source: Tag:environment
+  Transforms:
+    - Type: Lower
+  DefaultValue: Unknown
+  Rules:
+    - Type: Group
+      Name: Production
+      Conditions:
+        - Source: Tag:environment
+          Transforms:
+            - Type: Lower
+          Equals: prod
+```
+
+```yaml
+# ❌ Incorrect — arbitrary order makes diffs noisy
+- Id: environment
+  DefaultValue: Unknown
+  Rules:
+    - Type: Group
+      Conditions:
+        - Equals: prod
+          Source: Tag:environment
+          Transforms:
+            - Type: Lower
+      Name: Production
+  Transforms:
+    - Type: Lower
+  Source: Tag:environment
+  Name: Environment
+  Hide: true
+```
+
+---
+
+### Value Formatting
+
+**Single value:** write inline on the same line as the operator.
+
+```yaml
+# ✅ Correct
+Equals: prod
+BeginsWith: "payments-"
+```
+
+```yaml
+# ❌ Incorrect — unnecessary block for a single value
+Equals:
+  - prod
+```
+
+**Multiple values:** use collapsed inline array notation, alphabetized case-insensitively, with a newline after every 5th value.
+
+```yaml
+# ✅ Correct — collapsed, alphabetized, line-wrapped at 5
+Equals: [analytics, billing, data, fintech, infra,
+         payments, platform, security, shared]
+```
+
+```yaml
+# ❌ Incorrect — expanded block list when no inline comments are needed
+Equals:
+  - payments
+  - billing
+  - analytics
+  - infra
+  - data
+  - platform
+```
+
+**Exception:** preserve expanded format when any value carries an inline comment.
+
+```yaml
+# ✅ Correct — expanded because one value needs a comment
+Equals:
+  - payments
+  - billing   # includes legacy billing-v1 accounts
+  - analytics
+```
+
+**Source field:** single source inline; multiple sources as a block list or array.
+
+```yaml
+# ✅ Correct — single source inline
+Source: Tag:environment
+
+# ✅ Correct — multiple sources as block list
+Sources:
+  - Tag:environment
+  - Tag:env
+  - K8s:Label:environment
+```
+
+```yaml
+# ❌ Incorrect — single source as a one-element array
+Sources:
+  - Tag:environment
+```
+
+---
+
+### Source Shorthand (Dimension-Level Promotion)
+
+When more than 50% of rules in a dimension share the same source, promote it to the dimension header instead of repeating it on every condition.
+
+```yaml
+# ✅ Correct — source declared once at dimension level
+- Id: team
+  Name: Team
+  Source: Tag:team
+  Rules:
+    - Type: Group
+      Name: Payments
+      Conditions:
+        - Equals: payments
+    - Type: Group
+      Name: Platform
+      Conditions:
+        - Equals: platform
+    - Type: Group
+      Name: Data
+      Conditions:
+        - Equals: data
+```
+
+```yaml
+# ❌ Incorrect — source repeated on every condition when it never varies
+- Id: team
+  Name: Team
+  Rules:
+    - Type: Group
+      Name: Payments
+      Conditions:
+        - Source: Tag:team
+          Equals: payments
+    - Type: Group
+      Name: Platform
+      Conditions:
+        - Source: Tag:team
+          Equals: platform
+    - Type: Group
+      Name: Data
+      Conditions:
+        - Source: Tag:team
+          Equals: data
+```
+
+Note: Override the dimension-level source on individual conditions only when a specific rule needs a different source.
+
+---
+
+### Section Comments
+
+Use dashed comment blocks to separate logical sections within a dimension file. Keep comment lines to a consistent width.
+
+```yaml
+# ✅ Correct — dashed separator before each logical section
+#--------------------------------------------
+# Environment Dimensions
+#--------------------------------------------
+- Id: environment
+  Name: Environment
+  ...
+
+#--------------------------------------------
+# Team / Ownership Dimensions
+#--------------------------------------------
+- Id: team
+  Name: Team
+  ...
+```
+
+```yaml
+# ❌ Incorrect — blank lines or free-form comments as separators
+# Environment
+- Id: environment
+  ...
+
+# team stuff
+- Id: team
+  ...
+```
+
+---
+
+### Cleanup Rules
+
+Apply these when reviewing or refactoring existing definitions.
+
+**No blank lines between rules within the same dimension.** Blank lines between dimensions are fine; blank lines between sibling rules inside one dimension add noise.
+
+```yaml
+# ✅ Correct — no blank lines between rules
+Rules:
+  - Type: Group
+    Name: Production
+    Conditions:
+      - Equals: prod
+  - Type: Group
+    Name: Staging
+    Conditions:
+      - Equals: staging
+```
+
+```yaml
+# ❌ Incorrect — blank lines between sibling rules
+Rules:
+  - Type: Group
+    Name: Production
+    Conditions:
+      - Equals: prod
+
+  - Type: Group
+    Name: Staging
+    Conditions:
+      - Equals: staging
+```
+
+**Quote names containing YAML special characters** (`:`, `#`, `{`, `}`, `[`, `]`, `*`, `&`, `!`, `|`, `>`, `'`, `"`, `%`, `@`, `` ` ``).
+
+```yaml
+# ✅ Correct
+Name: "Cost: Shared Infrastructure"
+Name: "R&D"
+```
+
+```yaml
+# ❌ Incorrect — unquoted YAML special characters
+Name: Cost: Shared Infrastructure
+Name: R&D
+```
+
+**Account IDs are always quoted strings, left-padded to 12 digits.**
+
+```yaml
+# ✅ Correct
+Equals: "012345678901"
+```
+
+```yaml
+# ❌ Incorrect — unquoted or unpadded
+Equals: 12345678901
+Equals: "12345678901"
+```
+
+**Strip `Hide: false` and `Disable: false`.** Both are implicit defaults; writing them adds clutter.
+
+```yaml
+# ✅ Correct — implicit defaults omitted
+- Id: team
+  Name: Team
+  Source: Tag:team
+```
+
+```yaml
+# ❌ Incorrect — explicit false adds noise
+- Id: team
+  Name: Team
+  Hide: false
+  Disable: false
+  Source: Tag:team
+```
+
+**Consider `Child: Service`** for visible top-level grouping dimensions (e.g., Team, Product, Environment) unless a different drill-down is more useful. `Child: Service` gives users a one-click path to see which AWS/GCP services are driving cost within each element, which is the most common follow-up question.
+
+```yaml
+# ✅ Correct — Child declared for a top-level grouping dimension
+- Id: team
+  Name: Team
+  Child: Service
+  Source: Tag:team
+```
+
+**Strip trailing whitespace** from all lines before committing.
