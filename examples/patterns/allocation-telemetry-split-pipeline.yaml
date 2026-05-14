@@ -1,0 +1,106 @@
+# --- metadata ---
+# pattern_id: allocation-telemetry-split-pipeline
+# name: Telemetry Split Delimiter Pipeline
+# complexity: advanced
+# tags: [allocation, telemetry, split-transform, hidden-dim, hierarchy, AllocateByStreams]
+# source_pattern: [customer-d]
+# use_when: >
+#   Your telemetry stream sends composite element_name values with multiple
+#   fields packed into a single delimited string (e.g. "cost-group||org||repo||tier").
+#   You need to split these into separate dimensions for independent filtering
+#   and drill-down in Explorer.
+# prerequisites: [telemetry stream created with composite element_name format]
+# teaches:
+#   - Split transform with Index to extract positional fields from delimited strings
+#   - Chaining GroupBy dims off an allocation output (not layering — reading output)
+#   - Parent→Child dimension hierarchy from split fields
+#   - Hidden intermediate dimensions for pipeline stages
+# anti_patterns:
+#   - Layered allocations (allocation referencing another allocation) — GroupBy from
+#     allocation output is fine, that's reading the result not layering
+#   - Using Matches (regex) to parse delimited strings — Split transform is cleaner
+#   - SpendToAllocate with AllocateByStreams — filtering happens via stream filter keys
+
+# =============================================================================
+# Telemetry stream format (composite element_name):
+#   "cost-group||org-id||repo-id||tier||type||outcome"
+#
+# Example records sent to POST /v1/telemetry/usage_metrics_v2:
+#   {
+#     "records": [
+#       {
+#         "timestamp": "2024-06-01T14:00:00Z",
+#         "granularity": "HOURLY",
+#         "filter": {"accounts": ["123456789012"]},
+#         "element_name": "infrastructure||eng-core||repo-payments||premium||compute||success",
+#         "value": "42000"
+#       }
+#     ]
+#   }
+# =============================================================================
+
+Dimensions:
+  # Step 1: Allocation dimension ingests the composite stream
+  UsageAllocation:
+    Name: Usage Allocation
+    Type: Allocation
+    Hide: true
+    AllocateByStreams:
+      Streams:
+        - usage_metrics_v2
+
+  # Step 2: Split the composite allocation output into individual dimensions.
+  # Each GroupBy reads the allocation output (not layering) and applies a
+  # Split transform to extract one positional field.
+
+  # Index 1: cost-group (first field)
+  UsageCostGroup:
+    Name: Usage Cost Group
+    Hide: true
+    Rules:
+      - Type: GroupBy
+        Source: User:Defined:UsageAllocation
+        Transforms:
+          - Type: Split
+            Delimiter: "||"
+            Index: 1
+
+  # Index 2: org-id
+  # Child points to UsageRepository for drill-down: Org → Repo
+  UsageOrganization:
+    Name: Usage Organization
+    Hide: true
+    Child: User:Defined:UsageRepository
+    Rules:
+      - Type: GroupBy
+        Source: User:Defined:UsageAllocation
+        Transforms:
+          - Type: Split
+            Delimiter: "||"
+            Index: 2
+
+  # Index 3: repo-id
+  # Child points to UsageTier for drill-down: Repo → Tier
+  UsageRepository:
+    Name: Usage Repository
+    Hide: true
+    Child: User:Defined:UsageTier
+    Rules:
+      - Type: GroupBy
+        Source: User:Defined:UsageAllocation
+        Transforms:
+          - Type: Split
+            Delimiter: "||"
+            Index: 3
+
+  # Index 4: tier
+  UsageTier:
+    Name: Usage Tier
+    Hide: true
+    Rules:
+      - Type: GroupBy
+        Source: User:Defined:UsageAllocation
+        Transforms:
+          - Type: Split
+            Delimiter: "||"
+            Index: 4

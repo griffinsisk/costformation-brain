@@ -1,0 +1,129 @@
+# --- metadata ---
+# pattern_id: allocation-chain-multi-stream
+# name: Multi-Stream Allocation Chain
+# complexity: advanced
+# tags: [allocation, telemetry, multi-stream, coalesce, hidden-dim, AllocateByStreams]
+# source_pattern: [customer-h]
+# use_when: >
+#   Different cost pools (e.g. compute vs. storage) have separate usage
+#   signals sent via different telemetry streams. Each pool needs its own
+#   hidden target dimension and allocation dimension. A single visible
+#   "combined" dimension merges all allocated costs into one unified view.
+# prerequisites: [telemetry streams created for each cost pool]
+# teaches:
+#   - Multiple independent allocation pipelines (no layering)
+#   - Common "Spend to Allocate" pattern via hidden target dims (prevents overlap)
+#   - CoalesceSources merging multiple allocation outputs
+#   - Each allocation dim is independent — no allocation references another
+# anti_patterns:
+#   - Layered allocations (allocation referencing another allocation's output)
+#   - Overlapping SpendToAllocate across allocation dims — use hidden target dims
+#   - SpendToAllocate with AllocateByStreams — filtering happens via stream filter keys
+#   - DefaultValue on hidden target dims
+
+# =============================================================================
+# Pipeline overview:
+#
+#   ComputeSpendPool (hidden Group) ──► ComputeAllocation (AllocateByStreams)
+#                                         │
+#   StorageSpendPool (hidden Group) ──► StorageAllocation (AllocateByStreams)
+#                                         │
+#                               CustomerCosts (visible, coalesced)
+#
+# Each spend pool is a hidden target dimension that classifies charges.
+# Each allocation dimension uses a separate telemetry stream.
+# The final dimension coalesces all 4 sources into one unified view.
+# =============================================================================
+
+Dimensions:
+  # ---------------------------------------------------------------------------
+  # Stream 1: Compute cost pool
+  # ---------------------------------------------------------------------------
+
+  # Hidden target: classifies compute charges into a pool for allocation.
+  # No DefaultValue — only matching charges participate.
+  ComputeSpendPool:
+    Name: Compute Spend Pool
+    Hide: true
+    Rules:
+      - Type: Group
+        Name: Shared Compute
+        Conditions:
+          - And:
+              - Source: Service
+                Equals:
+                  - AmazonEC2
+                  - AmazonECS
+                  - AmazonEKS
+              - Source: Tag:cost-pool
+                Equals: shared
+
+  # Allocation: splits shared compute costs by customer using real usage data.
+  # Telemetry records filter by: {"custom:Compute Spend Pool": ["Shared Compute"]}
+  #
+  # Example stream record:
+  #   POST /v1/telemetry/compute_usage_stream
+  #   {
+  #     "records": [{
+  #       "timestamp": "2024-06-01T14:00:00Z",
+  #       "granularity": "HOURLY",
+  #       "filter": {"custom:Compute Spend Pool": ["Shared Compute"]},
+  #       "element_name": "customer-acme",
+  #       "value": "850000"
+  #     }]
+  #   }
+  ComputeAllocation:
+    Name: Compute Allocation
+    Type: Allocation
+    Hide: true
+    AllocateByStreams:
+      Streams:
+        - compute_usage_stream
+
+  # ---------------------------------------------------------------------------
+  # Stream 2: Storage cost pool
+  # ---------------------------------------------------------------------------
+
+  # Hidden target: classifies storage charges into a pool for allocation.
+  StorageSpendPool:
+    Name: Storage Spend Pool
+    Hide: true
+    Rules:
+      - Type: Group
+        Name: Shared Storage
+        Conditions:
+          - And:
+              - Source: Service
+                Equals:
+                  - AmazonS3
+                  - AmazonEFS
+                  - AmazonFSx
+              - Source: Tag:cost-pool
+                Equals: shared
+
+  # Allocation: splits shared storage costs by customer using real usage data.
+  # Telemetry records filter by: {"custom:Storage Spend Pool": ["Shared Storage"]}
+  StorageAllocation:
+    Name: Storage Allocation
+    Type: Allocation
+    Hide: true
+    AllocateByStreams:
+      Streams:
+        - storage_usage_stream
+
+  # ---------------------------------------------------------------------------
+  # Final: Unified customer cost view
+  # ---------------------------------------------------------------------------
+  # Coalesces all 4 sources — allocation outputs first (higher precision),
+  # then direct spend pool classifications as fallback.
+  # GroupBy passes through all element names from any source.
+  CustomerCosts:
+    Name: Customer Costs
+    Sources:
+      - User:Defined:ComputeAllocation
+      - User:Defined:StorageAllocation
+      - User:Defined:ComputeSpendPool
+      - User:Defined:StorageSpendPool
+    CoalesceSources: true
+    Rules:
+      - Type: GroupBy

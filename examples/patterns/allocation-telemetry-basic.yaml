@@ -1,0 +1,111 @@
+# --- metadata ---
+# pattern_id: allocation-telemetry-basic
+# name: Basic Telemetry Allocation
+# complexity: intermediate
+# tags: [allocation, telemetry, AllocateByStreams, hidden-dim, coalesce]
+# source_pattern: [customer-c]
+# use_when: >
+#   Split shared costs using external usage data sent via telemetry streams.
+#   You have a pool of shared spend (e.g. shared compute, shared databases)
+#   that should be distributed to teams proportionally based on real usage
+#   metrics like API calls, bytes processed, or compute seconds.
+# prerequisites: [telemetry stream created, target dimension published]
+# teaches:
+#   - AllocateByStreams with a dedicated hidden target dimension
+#   - Hidden allocation dims (Hide: true + Type: Allocation)
+#   - CoalesceSources priority ordering (allocation first, direct second)
+#   - Telemetry filter keys (custom:<DimName> not User:Defined:<DimId>)
+#   - 3-step pipeline: target → allocation → combined view
+# anti_patterns:
+#   - SpendToAllocate with AllocateByStreams — filtering happens via stream filter keys
+#   - DefaultValue on allocation target dims — forces processing every line item
+#   - Layered allocations (allocation referencing another allocation's output as Source)
+
+# =============================================================================
+# STEP 1: Hidden target dimension
+# =============================================================================
+# Classifies charges into spend categories. The "Shared" element becomes the
+# pool that telemetry-based allocation will split. No DefaultValue — unmatched
+# charges stay "Not in Dimension" and are never allocated.
+
+Dimensions:
+  SpendCategory:
+    Name: Spend Category
+    Hide: true
+    Rules:
+      - Type: Group
+        Name: Team-Alpha
+        Conditions:
+          - Source: Tag:team
+            Equals: team-alpha
+      - Type: Group
+        Name: Team-Beta
+        Conditions:
+          - Source: Tag:team
+            Equals: team-beta
+      - Type: Group
+        Name: Shared
+        Conditions:
+          - Source: Tag:cost-pool
+            Equals: shared
+
+  # ===========================================================================
+  # STEP 2: Allocation dimension
+  # ===========================================================================
+  # Uses AllocateByStreams to split shared costs proportionally based on
+  # real usage data. The stream "shared_usage_stream" must be created via
+  # the Telemetry API before this dimension is published.
+  #
+  # NOTE: AllocateByStreams does NOT support SpendToAllocate — the stream's
+  # filter keys control which charges are allocated. Filter keys use the
+  # dimension's UI Name, not its YAML ID.
+  #
+  # Example telemetry CSV record:
+  #   timestamp,granularity,filter,element_name,value
+  #   2024-06-01T14:00:00Z,HOURLY,"{""custom:Spend Category"": [""Shared""]}",Team-Alpha,75000
+  #   2024-06-01T14:00:00Z,HOURLY,"{""custom:Spend Category"": [""Shared""]}",Team-Beta,25000
+  #
+  # Example API POST body:
+  #   POST https://api.cloudzero.com/v1/telemetry/shared_usage_stream
+  #   {
+  #     "records": [
+  #       {
+  #         "timestamp": "2024-06-01T14:00:00Z",
+  #         "granularity": "HOURLY",
+  #         "filter": {"custom:Spend Category": ["Shared"]},
+  #         "element_name": "Team-Alpha",
+  #         "value": "75000"
+  #       },
+  #       {
+  #         "timestamp": "2024-06-01T14:00:00Z",
+  #         "granularity": "HOURLY",
+  #         "filter": {"custom:Spend Category": ["Shared"]},
+  #         "element_name": "Team-Beta",
+  #         "value": "25000"
+  #       }
+  #     ]
+  #   }
+  SharedAllocation:
+    Name: Shared Allocation
+    Type: Allocation
+    Hide: true
+    AllocateByStreams:
+      Streams:
+        - shared_usage_stream
+
+  # ===========================================================================
+  # STEP 3: Combined visible dimension
+  # ===========================================================================
+  # Merges direct team costs (from SpendCategory) with allocated shared costs
+  # (from SharedAllocation) into one unified view. CoalesceSources picks the
+  # first non-null value — allocation output takes priority so allocated
+  # shared costs aren't double-counted.
+  TeamCosts:
+    Name: Team Costs
+    Child: Service
+    Sources:
+      - User:Defined:SharedAllocation
+      - User:Defined:SpendCategory
+    CoalesceSources: true
+    Rules:
+      - Type: GroupBy

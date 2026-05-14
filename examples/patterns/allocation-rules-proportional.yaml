@@ -1,0 +1,80 @@
+# --- metadata ---
+# pattern_id: allocation-rules-proportional
+# name: Rules-Based Proportional Allocation
+# complexity: intermediate
+# tags: [allocation, AllocateByRules, proportional, hidden-dim, cross-cloud, scoping]
+# source_pattern: [customer-e]
+# use_when: >
+#   Split shared infrastructure costs proportionally across cost categories
+#   based on their existing spend ratios. No telemetry required — allocation
+#   uses the spend already attributed to each category as the weight.
+#   Ideal for shared platforms where usage telemetry is unavailable.
+# prerequisites: [CostCategory dimension published with correct element assignments]
+# teaches:
+#   - AllocateByRules with Proportional method
+#   - Narrowly scoped SpendToAllocate (cloud provider + account filter)
+#   - AcrossElements with GroupBy and condition filters
+#   - Hidden input dimension without DefaultValue (avoids processing all line items)
+#   - Cross-cloud allocation (GCP spend allocated proportionally to AWS categories)
+# anti_patterns:
+#   - Broad SpendToAllocate without service/account scoping — causes row explosion
+#   - DefaultValue on hidden input dims — forces processing every line item
+#   - Overlapping SpendToAllocate across multiple allocation dims
+
+Dimensions:
+  # Step 1: Hidden dimension classifying charges by cost type.
+  # No DefaultValue — unmatched charges stay "Not in Dimension" and never
+  # enter the allocation pool.
+  CostCategory:
+    Name: Cost Category
+    Hide: true
+    Rules:
+      - Type: Group
+        Name: COGS
+        Conditions:
+          - Source: Tag:cost-type
+            Equals: cogs
+            Transforms:
+              - Type: Lower
+      - Type: Group
+        Name: R&D
+        Conditions:
+          - Source: Tag:cost-type
+            Equals: r&d
+            Transforms:
+              - Type: Lower
+      - Type: Group
+        Name: Marketing
+        Conditions:
+          - Source: Tag:cost-type
+            Equals: marketing
+            Transforms:
+              - Type: Lower
+
+  # Step 2: Allocation dimension — splits shared GCP production spend
+  # proportionally across cost categories based on AWS spend ratios.
+  #
+  # SpendToAllocate: only GCP charges in specific production accounts.
+  # AcrossElements: proportional weights come from AWS spend already
+  # classified by CostCategory.
+  SharedInfraAllocation:
+    Name: Shared Infra Allocation
+    Type: Allocation
+    Hide: true
+    AllocateByRules:
+      AllocationMethod: Proportional
+      SpendToAllocate:
+        Conditions:
+          - And:
+              - Source: CloudProvider
+                Equals: GCP
+              - Source: Account
+                Equals:
+                  - "334455667788"
+                  - "445566778899"
+      AcrossElements:
+        GroupBy:
+          Source: User:Defined:CostCategory
+          Conditions:
+            - Source: CloudProvider
+              Equals: AWS

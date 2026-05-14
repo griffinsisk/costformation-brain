@@ -1,0 +1,62 @@
+# --- metadata ---
+# pattern_id: allocation-combined-coalesce
+# name: 5-Source Coalesce with Priority Ordering
+# complexity: advanced
+# tags: [coalesce, GroupBy, multi-source, priority, allocation-output, fallback]
+# source_pattern: [customer-g]
+# use_when: >
+#   Multiple allocation dimensions and direct-attribution dimensions each
+#   classify charges into the same set of elements (e.g. cost centers).
+#   You need a single unified dimension that picks the best available
+#   classification for each charge, with a defined priority order.
+# prerequisites: [all referenced User:Defined dimensions published]
+# teaches:
+#   - CoalesceSources with 5 sources and explicit priority ordering
+#   - GroupBy reading allocation dim output (not layering — safe)
+#   - Group rule to remap specific values (e.g. "unknown" → "R&D")
+#   - Child dimension for drill-down
+#   - Combining multiple allocation outputs with direct tag-based dims
+# anti_patterns:
+#   - Layered allocations (allocation referencing allocation in SpendToAllocate)
+#   - Forgetting CoalesceSources: true — without it, multiple sources create
+#     duplicate elements instead of picking the first non-null
+#   - Putting direct sources before allocation sources — allocated costs get
+#     overridden by the less-precise direct classification
+
+# =============================================================================
+# CoalesceSources Priority Order (first non-null wins):
+#
+#   1. TelemetryAllocation   — highest precision: real usage telemetry
+#   2. RulesAllocation       — proportional split from spend ratios
+#   3. TagCostCenter         — direct tag attribution
+#   4. AccountCostCenter     — account-level default mapping
+#   5. K8sCostCenter         — K8s label fallback
+#
+# Why this order:
+#   - Telemetry is the most precise signal (actual usage data)
+#   - Rules-based allocation uses spend ratios (less precise but still data-driven)
+#   - Direct tag is explicit human intent but may be stale or incomplete
+#   - Account mapping is a broad default (every charge has an account)
+#   - K8s labels are the last resort for containerized workloads
+# =============================================================================
+
+Dimensions:
+  CostCenterUnified:
+    Name: Cost Center (Unified)
+    Child: Service
+    Sources:
+      - User:Defined:TelemetryAllocation
+      - User:Defined:RulesAllocation
+      - User:Defined:TagCostCenter
+      - User:Defined:AccountCostCenter
+      - User:Defined:K8sCostCenter
+    CoalesceSources: true
+    Rules:
+      # Remap: if the coalesced value is "unknown", assign to R&D.
+      # This catches telemetry records or tags with placeholder values.
+      - Type: Group
+        Name: R&D
+        Conditions:
+          - Equals: unknown
+      # GroupBy passes through all other coalesced values as-is.
+      - Type: GroupBy

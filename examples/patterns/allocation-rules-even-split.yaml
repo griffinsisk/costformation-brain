@@ -1,0 +1,42 @@
+# --- metadata ---
+# pattern_id: allocation-rules-even-split
+# name: Rules-Based Even Split Allocation
+# complexity: basic
+# tags: [allocation, AllocateByRules, even-split, tag-filter]
+# source_pattern: [customer-f]
+# use_when: >
+#   Divide a pool of spend equally across a fixed set of cost categories.
+#   Use when there is no usage signal or spend ratio to weight by —
+#   each target element gets the same share. Common for shared platform
+#   costs, licenses, or support contracts.
+# prerequisites: [CostCategory dimension published]
+# teaches:
+#   - AllocateByRules with Even method (equal split across elements)
+#   - Tag-based SpendToAllocate scoping
+#   - AcrossElements with GroupBy + Equals filter to limit target elements
+# anti_patterns:
+#   - Using Proportional when spend ratios aren't meaningful for the use case
+#   - Broad SpendToAllocate without tag/service/account scoping
+#   - DefaultValue on the allocation dim itself
+
+Dimensions:
+  # Even split: open-source license costs divided equally between R&D and Marketing.
+  # SpendToAllocate targets only charges tagged as open-source licenses.
+  # AcrossElements limits the split to exactly two CostCategory elements.
+  OSSCostSplit:
+    Name: OSS Cost Split
+    Type: Allocation
+    Hide: true
+    AllocateByRules:
+      AllocationMethod: Even
+      SpendToAllocate:
+        Conditions:
+          - Source: Tag:license-type
+            Equals: open-source
+      AcrossElements:
+        GroupBy:
+          Source: User:Defined:CostCategory
+          Conditions:
+            - Equals:
+                - R&D
+                - Marketing
