@@ -1,0 +1,182 @@
+# --- metadata ---
+# pattern_id: account-mapping-large-scale
+# name: Large-Scale Account-to-Name Mapping
+# complexity: intermediate
+# tags: [account, Group, mapping, Child, quoted-ids, inline-comments, sections]
+# source_pattern: [customer-d]
+# use_when: >
+#   Map a large number of AWS accounts to human-readable names when accounts
+#   are grouped into business units or product lines. Section comments improve
+#   maintainability. Inline comments on account IDs keep the mapping auditable
+#   without a separate roster file. Use expanded list format (one entry per
+#   line) whenever inline comments are present — collapsing to array notation
+#   would discard the comments.
+# prerequisites: [account IDs known, accounts grouped by business unit]
+# teaches:
+#   - Section comment blocks for large rule lists
+#   - Inline comments on account IDs for traceability
+#   - Expanded list format required when inline comments exist
+#   - Child hierarchy for drill-down
+# anti_patterns:
+#   - Collapsing to array notation when inline comments are present
+#   - Mixing section comment styles within one file
+#   - Unquoted 12-digit account IDs
+
+Dimensions:
+  AccountName:
+    Name: Account Name
+    Child: Service
+    Source: Account
+    Rules:
+
+      #--------------------------------------------
+      # Consumer Products
+      #--------------------------------------------
+
+      - Type: Group
+        Name: consumer-web-prod
+        Conditions:
+          - Equals: '111111111111'  # consumer-web-prod
+
+      - Type: Group
+        Name: consumer-web-staging
+        Conditions:
+          - Equals: '111111111112'  # consumer-web-staging
+
+      - Type: Group
+        Name: consumer-web-dev
+        Conditions:
+          - Equals: '111111111113'  # consumer-web-dev
+
+      - Type: Group
+        Name: consumer-mobile-prod
+        Conditions:
+          - Equals: '222222222221'  # consumer-mobile-prod
+
+      - Type: Group
+        Name: consumer-mobile-staging
+        Conditions:
+          - Equals: '222222222222'  # consumer-mobile-staging
+
+      - Type: Group
+        Name: consumer-mobile-dev
+        Conditions:
+          - Equals: '222222222223'  # consumer-mobile-dev
+
+      - Type: Group
+        Name: consumer-search-prod
+        Conditions:
+          - Equals: '333333333331'  # consumer-search-prod
+
+      - Type: Group
+        Name: consumer-search-staging
+        Conditions:
+          - Equals: '333333333332'  # consumer-search-staging
+
+      - Type: Group
+        Name: consumer-data-prod
+        Conditions:
+          - Equals: '444444444441'  # consumer-data-prod
+
+      - Type: Group
+        Name: consumer-data-dev
+        Conditions:
+          - Equals: '444444444442'  # consumer-data-dev
+
+      #--------------------------------------------
+      # Enterprise Products
+      #--------------------------------------------
+
+      - Type: Group
+        Name: enterprise-api-prod
+        Conditions:
+          - Equals: '555555555551'  # enterprise-api-prod
+
+      - Type: Group
+        Name: enterprise-api-staging
+        Conditions:
+          - Equals: '555555555552'  # enterprise-api-staging
+
+      - Type: Group
+        Name: enterprise-api-dev
+        Conditions:
+          - Equals: '555555555553'  # enterprise-api-dev
+
+      - Type: Group
+        Name: enterprise-reporting-prod
+        Conditions:
+          - Equals: '666666666661'  # enterprise-reporting-prod
+
+      - Type: Group
+        Name: enterprise-reporting-staging
+        Conditions:
+          - Equals: '666666666662'  # enterprise-reporting-staging
+
+      - Type: Group
+        Name: enterprise-reporting-dev
+        Conditions:
+          - Equals: '666666666663'  # enterprise-reporting-dev
+
+      - Type: Group
+        Name: enterprise-auth-prod
+        Conditions:
+          - Equals: '777777777771'  # enterprise-auth-prod
+
+      - Type: Group
+        Name: enterprise-auth-staging
+        Conditions:
+          - Equals: '777777777772'  # enterprise-auth-staging
+
+      - Type: Group
+        Name: enterprise-data-prod
+        Conditions:
+          - Equals: '888888888881'  # enterprise-data-prod
+
+      - Type: Group
+        Name: enterprise-data-dev
+        Conditions:
+          - Equals: '888888888882'  # enterprise-data-dev
+
+      #--------------------------------------------
+      # Shared Infrastructure
+      #--------------------------------------------
+
+      - Type: Group
+        Name: shared-networking-prod
+        Conditions:
+          - Equals: '900000000001'  # shared-networking-prod
+
+      - Type: Group
+        Name: shared-networking-dev
+        Conditions:
+          - Equals: '900000000002'  # shared-networking-dev
+
+      - Type: Group
+        Name: shared-security-prod
+        Conditions:
+          - Equals: '910000000001'  # shared-security-prod
+
+      - Type: Group
+        Name: shared-logging-prod
+        Conditions:
+          - Equals: '920000000001'  # shared-logging-prod
+
+      - Type: Group
+        Name: shared-monitoring-prod
+        Conditions:
+          - Equals: '930000000001'  # shared-monitoring-prod
+
+      - Type: Group
+        Name: shared-cicd
+        Conditions:
+          - Equals: '940000000001'  # shared-cicd
+
+      - Type: Group
+        Name: shared-artifact-registry
+        Conditions:
+          - Equals: '950000000001'  # shared-artifact-registry
+
+      - Type: Group
+        Name: shared-sandbox
+        Conditions:
+          - Equals: '960000000001'  # shared-sandbox

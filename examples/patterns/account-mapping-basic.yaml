@@ -1,0 +1,97 @@
+# --- metadata ---
+# pattern_id: account-mapping-basic
+# name: Basic Account-to-Name Mapping
+# complexity: basic
+# tags: [account, Group, mapping, Child, quoted-ids]
+# source_pattern: [customer-d]
+# use_when: >
+#   Map AWS account IDs to human-readable names when your org has a small,
+#   stable set of accounts. Pair with Child: Service so users can drill from
+#   account into per-service spend without a second dimension.
+# prerequisites: [account IDs known]
+# teaches: [Group rules, Account source, quoted account IDs, Child hierarchy]
+# anti_patterns:
+#   - unquoted account IDs (YAML may coerce 12-digit numbers incorrectly)
+#   - omitting Child when the dimension is the primary account-level view
+#   - adding DefaultValue unless you want a named catch-all shown in reports
+
+Dimensions:
+  AccountName:
+    Name: Account Name
+    Child: Service
+    Source: Account
+    Rules:
+      - Type: Group
+        Name: app-prod-east
+        Conditions:
+          - Equals: '347508672966'
+
+      - Type: Group
+        Name: app-prod-west
+        Conditions:
+          - Equals: '892341056712'
+
+      - Type: Group
+        Name: app-staging
+        Conditions:
+          - Equals: '561034782109'
+
+      - Type: Group
+        Name: app-dev
+        Conditions:
+          - Equals: '203984710562'
+
+      - Type: Group
+        Name: data-prod
+        Conditions:
+          - Equals: '784510293847'
+
+      - Type: Group
+        Name: data-staging
+        Conditions:
+          - Equals: '619284037152'
+
+      - Type: Group
+        Name: data-dev
+        Conditions:
+          - Equals: '453720198634'
+
+      - Type: Group
+        Name: platform-prod
+        Conditions:
+          - Equals: '128374650921'
+
+      - Type: Group
+        Name: platform-staging
+        Conditions:
+          - Equals: '976512308741'
+
+      - Type: Group
+        Name: security-prod
+        Conditions:
+          - Equals: '304817265094'
+
+      - Type: Group
+        Name: networking-prod
+        Conditions:
+          - Equals: '845620391748'
+
+      - Type: Group
+        Name: monitoring-prod
+        Conditions:
+          - Equals: '532018467293'
+
+      - Type: Group
+        Name: logging-prod
+        Conditions:
+          - Equals: '710293846501'
+
+      - Type: Group
+        Name: cicd-shared
+        Conditions:
+          - Equals: '289064731058'
+
+      - Type: Group
+        Name: sandbox-shared
+        Conditions:
+          - Equals: '406183920475'
