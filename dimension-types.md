@@ -188,3 +188,19 @@ Values can have alternatives — `cache` matches `redis` and `memcached` as sub-
 | Agent-friendly | No | Yes |
 
 Agents should always write YAML.
+
+---
+
+## Hierarchy Design Principles
+
+When building multi-level dimension structures (e.g., Product → Team → Service), follow these five principles:
+
+1. **Top level = business alignment.** The root dimension should map to a category that business stakeholders recognize — product, business unit, cost center. Avoid purely technical groupings at the top level.
+
+2. **2-3 levels deep maximum.** Deeper hierarchies increase maintenance burden and make it harder for end users to navigate cost data. If you find yourself designing 4+ levels, consider whether the lower levels belong in a separate analysis dimension instead.
+
+3. **Use Child relationships for drill-down.** Define subordinate dimensions with `Parent` pointing to the higher-level dimension ID. This preserves the ability to report at any level without duplicating classification logic.
+
+4. **Hide intermediate dimensions.** Dimensions that exist solely to feed a parent or to stage logic for a GroupBy should be marked `Hidden: true`. Expose only the dimensions users need to interact with directly in the UI.
+
+5. **`DefaultValue` at the top level only, and only when explicitly needed.** A catch-all bucket (e.g., "Other") makes sense on the root dimension when unclassified spend must be visible. Do not set `DefaultValue` on hidden or intermediate dimensions — it forces processing of every line item and inflates the expansion factor.

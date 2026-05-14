@@ -156,3 +156,82 @@ Use `HasValue: false` in downstream dimensions to identify uncovered charges ins
 ## Monitoring
 
 CloudZero's **Organization Data Projection Size** dashboard in Sigma shows the line item expansion caused by each dimension. Use it to diagnose performance problems after publishing. It is currently the only tool available for this — there is no pre-publish sizing estimator.
+
+---
+
+## Overlap Investigation for Coalesced Allocation Dimensions
+
+When a GroupBy dimension coalesces 2+ allocation-derived sources (`CoalesceSources: true`), verify that the underlying dimensions are mutually exclusive — overlapping spend means a charge appears in more than one input bucket and will be double-counted or incorrectly attributed after coalesce.
+
+**How to test for overlap:**
+
+Filter to line items where dimension A has a value, then group by dimension B. Any non-null values in B for those line items indicate overlap between A and B. Repeat for each pair, but only check the upper triangle — (A,B) and (B,A) are the same overlap.
+
+**Mutual exclusivity matrix (present this format when reporting results):**
+
+| | Dim A | Dim B | Dim C |
+|---|---|---|---|
+| **Dim A** | — | overlap? | overlap? |
+| **Dim B** | | — | overlap? |
+| **Dim C** | | | — |
+
+Mark each cell as "clean" or "overlap detected (N line items, $X cost)".
+
+**Common causes of overlap:**
+
+- Multiple telemetry streams targeting the same resource pool
+- Broad `SpendToAllocate` element that catches charges meant for a narrower element
+- Missing filter scoping (no `Filter` condition on a hidden input dimension)
+- Two dimensions using different tag keys that happen to co-exist on the same resources
+
+---
+
+## Hidden Dimension Sprawl Anti-Pattern
+
+**Signal:** 5 or more hidden dimensions feeding a single visible GroupBy via `CoalesceSources: true`.
+
+**Why it's a problem:** Each hidden dimension adds a processing pass over the line item set. With broad scoping, this multiplies expansion without adding analytical value.
+
+**Anti-pattern:**
+
+```yaml
+# Bad: five hidden dims all doing the same job
+- Id: HiddenTeamA
+  Type: Allocation
+  Hidden: true
+  # ... rules for team A
+
+- Id: HiddenTeamB
+  Type: Allocation
+  Hidden: true
+  # ... rules for team B
+
+# ... HiddenTeamC, HiddenTeamD, HiddenTeamE ...
+
+- Id: TeamAllocation
+  Type: GroupBy
+  CoalesceSources: true
+  Sources:
+    - User:Defined:HiddenTeamA
+    - User:Defined:HiddenTeamB
+    - User:Defined:HiddenTeamC
+    - User:Defined:HiddenTeamD
+    - User:Defined:HiddenTeamE
+```
+
+**Fix:** Collapse into a single allocation dimension with all elements defined inline.
+
+```yaml
+# Good: one dimension, all elements
+- Id: TeamAllocation
+  Type: Allocation
+  Elements:
+    - Name: Team A
+      # ... rules for team A
+    - Name: Team B
+      # ... rules for team B
+    - Name: Team C
+      # ... rules for team C
+```
+
+**Exception:** Keep hidden dimensions separate when they serve other purposes — for example, when a hidden dimension is referenced as a filter target in a telemetry stream. Collapsing it would break the telemetry reference. Verify before merging.
