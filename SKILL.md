@@ -35,11 +35,15 @@ Consult the relevant file based on what you're working on:
 | Review/debug existing dimension | `my-org/index.yaml`, `my-org/context.md`, `my-org/`, `performance-rules.md`, `sources.md`, `conditions-and-transforms.md`, `dimension-types.md` |
 
 **Before any CostFormation work:**
-1. Check if `my-org/` needs populating or refreshing (see agent instruction file for freshness rules).
-2. Read `my-org/index.yaml` first for a compact summary, then `my-org/context.md` (always). Load full detail files as needed.
-3. Read `performance-rules.md` before generating any dimension definition.
-4. Read `allocation-design.md` before writing any Allocation Dimension.
-5. Check `examples/index.yaml` for a matching pattern before writing a dimension from scratch.
+1. **Always query the CloudZero MCP** (if connected) — even if you have a CSV, an existing file, or prior context. The MCP is a cross-reference, not a fallback.
+2. Check if `my-org/` needs populating or refreshing (see agent instruction file for freshness rules).
+3. Read `my-org/index.yaml` first for a compact summary, then `my-org/context.md` (always). Load full detail files as needed.
+4. Read `performance-rules.md` before generating any dimension definition.
+5. Read `allocation-design.md` before writing any Allocation Dimension.
+6. Check `examples/index.yaml` for a matching pattern before writing a dimension from scratch.
+
+**Before editing any costformation file:**
+7. Back up the production file as `<filename>.<YYYY-MM-DD>.backup.yaml`. Create a change sub-folder with clean dimension YAML + comments file. See agent instruction file for the full working-file workflow.
 
 **After generating or modifying CostFormation YAML:**
 6. Run `python3 costformation-brain/validator/lint.py <file>` on the output.

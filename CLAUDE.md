@@ -55,11 +55,11 @@ Before writing any CostFormation, check whether `costformation-brain/my-org/` ne
 
 **Never overwrite context.md.** That file is append-only. See the guard at the top of the file.
 
-## Use Data Before Asking Questions
+## Always Query MCP First
 
-**When the user asks you to create or modify a dimension, do NOT ask questions the data can answer.** Instead:
+**When the user asks you to create or modify a dimension, always query the CloudZero MCP — even if you already have a CSV, an existing costformation file, or prior context.** The MCP is a cross-reference, not a fallback. It catches accounts the CSV missed, tags the file doesn't show, and dimensions that exist in CloudZero but not in the local YAML.
 
-1. **Query the CloudZero MCP first** (if connected) — pull accounts, tags, existing dimensions, cost data, tag coverage. Look at what's actually in the environment.
+1. **Query the CloudZero MCP first** (if connected) — pull accounts, tags, existing dimensions, cost data, tag coverage. Do this even if the user provided a CSV or you already parsed the costformation file. Cross-reference MCP data against other sources to find gaps.
 2. **Parse the costformation file** — see what dimensions already exist, what sources and patterns are used, what naming conventions are in place.
 3. **Read `costformation-brain/my-org/index.yaml`** first, then **`my-org/context.md`** — check for persisted org context from prior sessions. Load detail files if the index is missing signals you need.
 4. **Check ALL signal sources for the concept the user is asking about.** Don't just look at tags. For any dimension, check:
@@ -79,6 +79,38 @@ Present what you built with a brief explanation of what you found in the data. T
 
 When the user provides org context during conversation — team-to-account mappings, CSVs, org charts, business rules, constraints, or goals — **append it to `costformation-brain/my-org/context.md`** under the relevant section heading. Do not lose information between sessions. Never replace existing content — only add to it.
 
+## Working Files — Never Edit Production In Place
+
+**Never modify the production costformation file directly.** Always use working files for version control and safe review.
+
+### Before any edit:
+1. **Back up the current production file** as a timestamped copy: `<filename>.<YYYY-MM-DD>.backup.yaml`
+2. **Create a change sub-folder** for the work:
+   ```
+   <change-name>/
+     <dimension-name>_<YYYY-MM-DD>.yaml       # new/modified dimension YAML — clean, copy-paste ready
+     <dimension-name>_<YYYY-MM-DD>_comments.md # what it does, why, next steps, paste location
+   ```
+
+### The dimension file:
+- Contains ONLY the new or modified dimension definition
+- Clean and copy-paste ready — the user pastes it into the production file
+- No surrounding context or other dimensions
+
+### The comments file:
+- What the dimension does (plain English)
+- Why this change was requested
+- Exact paste location in the production file (line number or anchor context)
+- Dependencies (streams to create, other dimensions that must exist first)
+- Testing recommendations
+
+### After the user applies the change:
+- Record what was done in `costformation-brain/my-org/context.md`
+- Note any follow-up items (stream creation, testing, etc.)
+
+**If the user explicitly asks you to edit the production file directly**, make the timestamped backup first. No exceptions.
+
 ## NEVER
 
 - Write bare `Source: <DimensionId>` for custom or CZ dimensions without a prefix — `User:Defined:` and `CZ:Defined:` prefixes are required. Core billing sources (`Account`, `Service`, `Region`, etc.) are bare
+- Modify production costformation files without creating a timestamped backup first
