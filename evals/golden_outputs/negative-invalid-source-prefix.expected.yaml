@@ -1,0 +1,11 @@
+# Negative case: bare custom dimension reference without User:Defined: prefix.
+# Source: Environment should be Source: User:Defined:Environment
+# This must trigger rule source-prefix-missing.
+
+Dimensions:
+  TeamByEnv:
+    Name: Team by Environment
+    Child: Service
+    Rules:
+      - Type: GroupBy
+        Source: Environment

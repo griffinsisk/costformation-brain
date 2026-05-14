@@ -1,0 +1,20 @@
+test_id: negative-defaultvalue-hidden
+description: "Negative case: hidden helper dimension with DefaultValue triggers allocation-input error"
+complexity: negative
+
+prompt: null
+
+context: null
+
+golden_output: golden_outputs/negative-defaultvalue-hidden.expected.yaml
+
+expected_validator:
+  status: error
+  rule_ids:
+    - defaultvalue-allocation-input
+
+assertions:
+  - type: validator_diagnostics
+    severity: ERROR
+    min: 1
+    rule_id: defaultvalue-allocation-input

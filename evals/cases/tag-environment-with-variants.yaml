@@ -1,0 +1,29 @@
+test_id: tag-environment-with-variants
+description: Environment dimension from Tag:environment with Lower transform for case normalization
+complexity: basic
+
+prompt: |
+  Create an Environment dimension using the "environment" tag. Teams use
+  inconsistent casing (prod, PROD, Prod). Normalize with a Lower transform.
+  Include Production, Staging, Development, and QA buckets.
+
+context:
+  accounts: []
+  existing_dimensions: []
+  has_k8s: false
+
+golden_output: golden_outputs/tag-environment-with-variants.expected.yaml
+
+expected_validator:
+  status: pass
+  rule_ids: []
+
+assertions:
+  - type: dimension_exists
+    id: Environment
+  - type: source_used
+    dimension: Environment
+    source: Tag:environment
+  - type: validator_diagnostics
+    severity: ERROR
+    max: 0

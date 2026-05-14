@@ -1,0 +1,24 @@
+test_id: ambiguous-request-fallback
+description: Produce a reasonable dimension from a vague prompt with minimal context
+complexity: basic
+
+prompt: |
+  I need to see costs by cost center.
+
+context:
+  accounts: []
+  existing_dimensions: []
+  has_k8s: false
+
+golden_output: golden_outputs/ambiguous-request-fallback.expected.yaml
+
+expected_validator:
+  status: pass
+  rule_ids: []
+
+assertions:
+  - type: dimension_exists
+    id: CostCenter
+  - type: validator_diagnostics
+    severity: ERROR
+    max: 0

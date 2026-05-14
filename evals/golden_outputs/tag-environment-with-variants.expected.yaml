@@ -1,0 +1,40 @@
+Dimensions:
+  Environment:
+    Name: Environment
+    Child: Service
+    Source: Tag:environment
+    Transforms:
+      - Type: Lower
+    Rules:
+      - Type: Group
+        Name: Production
+        Conditions:
+          - Equals:
+              - prod
+              - production
+              - prd
+
+      - Type: Group
+        Name: Staging
+        Conditions:
+          - Equals:
+              - staging
+              - stage
+              - stg
+
+      - Type: Group
+        Name: Development
+        Conditions:
+          - Equals:
+              - dev
+              - development
+              - develop
+
+      - Type: Group
+        Name: QA
+        Conditions:
+          - Equals:
+              - qa
+              - test
+              - testing
+              - uat

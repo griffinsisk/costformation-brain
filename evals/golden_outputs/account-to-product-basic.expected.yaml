@@ -1,0 +1,20 @@
+Dimensions:
+  Product:
+    Name: Product
+    Child: Service
+    Source: Account
+    Rules:
+      - Type: Group
+        Name: Web App
+        Conditions:
+          - Equals: '901234567001'
+
+      - Type: Group
+        Name: Mobile App
+        Conditions:
+          - Equals: '892341056712'
+
+      - Type: Group
+        Name: Data Platform
+        Conditions:
+          - Equals: '561034782109'

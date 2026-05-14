@@ -1,0 +1,48 @@
+Dimensions:
+  K8sTeam:
+    Name: K8s Team
+    Child: Service
+    Rules:
+      - Type: Group
+        Name: Platform Engineering
+        Conditions:
+          - Or:
+              - Source: K8s:Namespace
+                Equals:
+                  - platform
+                  - platform-system
+                  - platform-tooling
+                  - infra
+              - Source: K8s:Namespace
+                BeginsWith: platform-
+              - Source: K8s:Workload
+                BeginsWith: platform-
+
+      - Type: Group
+        Name: Data Engineering
+        Conditions:
+          - Or:
+              - Source: K8s:Namespace
+                Equals:
+                  - data
+                  - data-pipeline
+                  - data-streaming
+              - Source: K8s:Namespace
+                BeginsWith: data-
+              - Source: K8s:Workload
+                BeginsWith: data-
+
+      - Type: Group
+        Name: Application Services
+        Conditions:
+          - Or:
+              - Source: K8s:Namespace
+                Equals:
+                  - app
+                  - apps
+                  - backend
+                  - api
+              - Source: K8s:Namespace
+                BeginsWith: app-
+              - Source: K8s:Workload
+                BeginsWith: app-

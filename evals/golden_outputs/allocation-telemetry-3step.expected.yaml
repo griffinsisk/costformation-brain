@@ -1,0 +1,38 @@
+Dimensions:
+  SpendCategory:
+    Name: Spend Category
+    Hide: true
+    Rules:
+      - Type: Group
+        Name: Team-Alpha
+        Conditions:
+          - Source: Tag:team
+            Equals: team-alpha
+      - Type: Group
+        Name: Team-Beta
+        Conditions:
+          - Source: Tag:team
+            Equals: team-beta
+      - Type: Group
+        Name: Shared
+        Conditions:
+          - Source: Tag:cost-pool
+            Equals: shared
+
+  SharedAllocation:
+    Name: Shared Allocation
+    Type: Allocation
+    Hide: true
+    AllocateByStreams:
+      Streams:
+        - shared_usage_stream
+
+  TeamCosts:
+    Name: Team Costs
+    Child: Service
+    Sources:
+      - User:Defined:SharedAllocation
+      - User:Defined:SpendCategory
+    CoalesceSources: true
+    Rules:
+      - Type: GroupBy

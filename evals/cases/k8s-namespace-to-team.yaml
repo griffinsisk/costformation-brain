@@ -1,0 +1,30 @@
+test_id: k8s-namespace-to-team
+description: Map Kubernetes namespaces to engineering teams
+complexity: intermediate
+
+prompt: |
+  Create a K8sTeam dimension that maps Kubernetes namespaces to teams.
+  Platform Engineering owns platform-* namespaces, Data Engineering owns
+  data-* namespaces, and Application Services owns app-* namespaces.
+  Use K8s:Namespace as the primary source with K8s:Workload fallback.
+
+context:
+  accounts: []
+  existing_dimensions: []
+  has_k8s: true
+
+golden_output: golden_outputs/k8s-namespace-to-team.expected.yaml
+
+expected_validator:
+  status: pass
+  rule_ids: []
+
+assertions:
+  - type: dimension_exists
+    id: K8sTeam
+  - type: source_used
+    dimension: K8sTeam
+    source: K8s:Namespace
+  - type: validator_diagnostics
+    severity: ERROR
+    max: 0

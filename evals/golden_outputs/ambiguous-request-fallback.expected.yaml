@@ -1,0 +1,7 @@
+Dimensions:
+  CostCenter:
+    Name: Cost Center
+    Child: Service
+    Source: Tag:cost-center
+    Rules:
+      - Type: GroupBy

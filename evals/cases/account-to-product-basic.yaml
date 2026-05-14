@@ -1,0 +1,41 @@
+test_id: account-to-product-basic
+description: Map 3 AWS accounts to Product dimension using Group rules
+complexity: basic
+
+prompt: |
+  Create a Product dimension that maps three AWS accounts to products:
+  account 901234567001 is "Web App", account 892341056712 is "Mobile App",
+  and account 561034782109 is "Data Platform".
+
+context:
+  accounts:
+    - id: '901234567001'
+      name: webapp-prod
+    - id: '892341056712'
+      name: mobile-prod
+    - id: '561034782109'
+      name: dataplatform-prod
+  existing_dimensions: []
+  has_k8s: false
+
+golden_output: golden_outputs/account-to-product-basic.expected.yaml
+
+expected_validator:
+  status: pass
+  rule_ids: []
+
+assertions:
+  - type: dimension_exists
+    id: Product
+  - type: rule_count
+    dimension: Product
+    min: 3
+  - type: source_used
+    dimension: Product
+    source: Account
+  - type: no_default_value
+    dimension: Product
+  - type: quoted_account_ids
+  - type: validator_diagnostics
+    severity: ERROR
+    max: 0

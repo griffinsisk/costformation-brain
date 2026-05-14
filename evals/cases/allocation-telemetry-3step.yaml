@@ -1,0 +1,35 @@
+test_id: allocation-telemetry-3step
+description: 3-step allocation pipeline using telemetry - target dim, allocation dim, coalesce dim
+complexity: advanced
+
+prompt: |
+  Create a telemetry-based allocation pipeline. Step 1: a hidden SpendCategory
+  dimension that classifies charges by tag:team into Team-Alpha, Team-Beta,
+  and Shared. Step 2: a hidden allocation dimension that splits Shared costs
+  using a telemetry stream. Step 3: a visible TeamCosts dimension that coalesces
+  allocation output with direct team costs.
+
+context:
+  accounts: []
+  existing_dimensions: []
+  has_k8s: false
+
+golden_output: golden_outputs/allocation-telemetry-3step.expected.yaml
+
+expected_validator:
+  status: pass
+  rule_ids: []
+
+assertions:
+  - type: dimension_exists
+    id: SpendCategory
+  - type: dimension_exists
+    id: SharedAllocation
+  - type: dimension_exists
+    id: TeamCosts
+  - type: source_used
+    dimension: TeamCosts
+    source: User:Defined:SharedAllocation
+  - type: validator_diagnostics
+    severity: ERROR
+    max: 0

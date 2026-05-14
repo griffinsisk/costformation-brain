@@ -1,0 +1,65 @@
+Dimensions:
+  AccountName:
+    Name: Account Name
+    Child: Service
+    Source: Account
+    Rules:
+      - Type: Group
+        Name: prod-main
+        Conditions:
+          - Equals: '111222333444'
+
+      - Type: Group
+        Name: dev-main
+        Conditions:
+          - Equals: '555666777888'
+
+  Environment:
+    Name: Environment
+    Child: Service
+    Source: Tag:environment
+    Transforms:
+      - Type: Lower
+    Rules:
+      - Type: Group
+        Name: Production
+        Conditions:
+          - Equals:
+              - prod
+              - production
+
+      - Type: Group
+        Name: Development
+        Conditions:
+          - Equals:
+              - dev
+              - development
+
+  Team:
+    Name: Team
+    Child: Service
+    Source: Tag:team
+    Transforms:
+      - Type: Lower
+    Rules:
+      - Type: Group
+        Name: Backend
+        Conditions:
+          - Equals:
+              - backend
+              - back-end
+
+      - Type: Group
+        Name: Frontend
+        Conditions:
+          - Equals:
+              - frontend
+              - front-end
+
+      - Type: Group
+        Name: Platform
+        Conditions:
+          - Equals:
+              - platform
+              - infra
+              - infrastructure

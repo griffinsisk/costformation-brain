@@ -1,0 +1,28 @@
+test_id: shared-cost-even-split
+description: Even split allocation of shared costs using AllocateByRules
+complexity: intermediate
+
+prompt: |
+  Create an allocation dimension that splits open-source license costs
+  evenly between R&D and Marketing cost categories. Use tag:license-type
+  to identify the spend pool.
+
+context:
+  accounts: []
+  existing_dimensions:
+    - id: CostCategory
+      name: Cost Category
+  has_k8s: false
+
+golden_output: golden_outputs/shared-cost-even-split.expected.yaml
+
+expected_validator:
+  status: pass
+  rule_ids: []
+
+assertions:
+  - type: dimension_exists
+    id: OSSCostSplit
+  - type: validator_diagnostics
+    severity: ERROR
+    max: 0

@@ -1,0 +1,20 @@
+test_id: negative-invalid-source-prefix
+description: "Negative case: bare custom dimension reference missing User:Defined: prefix"
+complexity: negative
+
+prompt: null
+
+context: null
+
+golden_output: golden_outputs/negative-invalid-source-prefix.expected.yaml
+
+expected_validator:
+  status: error
+  rule_ids:
+    - source-prefix-missing
+
+assertions:
+  - type: validator_diagnostics
+    severity: ERROR
+    min: 1
+    rule_id: source-prefix-missing

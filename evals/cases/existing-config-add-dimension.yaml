@@ -1,0 +1,41 @@
+test_id: existing-config-add-dimension
+description: Add a new Team dimension to a file that already has AccountName and Environment dims
+complexity: intermediate
+
+prompt: |
+  I already have AccountName and Environment dimensions. Add a new Team
+  dimension that maps tag:team values to team names. Include Backend,
+  Frontend, and Platform teams.
+
+context:
+  accounts:
+    - id: '111222333444'
+      name: prod-main
+    - id: '555666777888'
+      name: dev-main
+  existing_dimensions:
+    - id: AccountName
+      name: Account Name
+    - id: Environment
+      name: Environment
+  has_k8s: false
+
+golden_output: golden_outputs/existing-config-add-dimension.expected.yaml
+
+expected_validator:
+  status: pass
+  rule_ids: []
+
+assertions:
+  - type: dimension_exists
+    id: AccountName
+  - type: dimension_exists
+    id: Environment
+  - type: dimension_exists
+    id: Team
+  - type: rule_count
+    dimension: Team
+    min: 3
+  - type: validator_diagnostics
+    severity: ERROR
+    max: 0

@@ -1,0 +1,20 @@
+# Negative case: hidden helper dimension with DefaultValue.
+# Hidden non-allocation dims must not have DefaultValue.
+# This must trigger rule defaultvalue-allocation-input.
+
+Dimensions:
+  EnvHelper:
+    Name: Environment Helper
+    Hide: true
+    DefaultValue: Unknown
+    Source: Account
+    Rules:
+      - Type: Group
+        Name: Production
+        Conditions:
+          - Equals: '100200300401'
+
+      - Type: Group
+        Name: Non-Production
+        Conditions:
+          - Equals: '100200300402'

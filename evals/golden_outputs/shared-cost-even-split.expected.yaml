@@ -1,0 +1,19 @@
+Dimensions:
+  OSSCostSplit:
+    Name: OSS Cost Split
+    Type: Allocation
+    Hide: true
+    AllocateByRules:
+      AllocationMethod: Even
+      SpendToAllocate:
+        Conditions:
+          - And:
+              - Source: Tag:license-type
+                Equals: open-source
+      AcrossElements:
+        GroupBy:
+          Source: User:Defined:CostCategory
+          Conditions:
+            - Equals:
+                - R&D
+                - Marketing
