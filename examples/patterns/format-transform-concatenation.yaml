@@ -1,0 +1,124 @@
+# --- metadata ---
+# pattern_id: format-transform-concatenation
+# name: GroupBy with Format Parameter (Split + Reconstruct)
+# complexity: advanced
+# tags: [groupby, format, split, transform, pvc, ecr, normalize]
+# use_when: >
+#   You want to derive a shorter, canonical element name from a longer resource
+#   identifier by splitting on a delimiter and reconstructing the result with a
+#   fixed suffix or prefix. Typical cases: PVC names that embed a service name
+#   before "-pvc-<id>", ECR repo paths where only the repository name matters,
+#   or any composite identifier where the meaningful segment is in a known
+#   position.
+# prerequisites:
+#   - Resources follow a consistent naming pattern with a predictable delimiter
+#   - CZ:Defined:ResourceSummaryDisplay values follow the expected pattern
+#   - Conditions must scope the GroupBy to only the resources that match the
+#     naming convention — Format output is undefined for non-matching values
+# teaches:
+#   - Format is a GroupBy rule parameter, NOT a condition parameter
+#   - Format uses {0} as the placeholder for the extracted Split segment
+#   - Split Index is 1-based: Index: 1 = first segment
+#   - Format lets you append or prepend static text around the extracted value
+#   - Conditions inside a GroupBy rule scope which charges the rule applies to;
+#     charges not matching the conditions fall through to the next rule
+#   - Normalize before Split lowercases and removes special chars, so the
+#     extracted segment is always clean before Format appends the suffix
+# anti_patterns:
+#   - Using Format on a Group rule (Type: Group) — Format is only valid on
+#     Type: GroupBy rules
+#   - Setting Format without Split — the placeholder {0} would refer to the
+#     full source value, which is rarely useful
+#   - Omitting scoping conditions on a GroupBy+Format rule — the rule applies
+#     to all charges and may produce malformed element names for resources
+#     that don't follow the expected naming convention
+#   - Using Index: 0 — Split Index is 1-based; Index: 0 is invalid
+
+Dimensions:
+  StorageResourceGroup:
+    Name: Storage Resource Group
+    Child: Service
+
+    Rules:
+      # ── Rule 1: PVC names — Split on "-pvc-", reconstruct with "-pvc" suffix ─
+      # EBS volumes and snapshots provisioned by Kubernetes for persistent
+      # volume claims are named like "payments-pvc-a1b2c3d4". We want the
+      # element name "payments-pvc" — i.e. the service prefix with "-pvc"
+      # appended to make it clear these are PVC-provisioned storage costs.
+      #
+      # Split Delimiter: "-pvc-"  Index: 1  → extracts "payments"
+      # Format: "{0}-pvc"         → produces  "payments-pvc"
+      #
+      # Conditions scope this rule to EC2 volumes and snapshots only;
+      # other services that happen to contain "-pvc-" are handled elsewhere.
+      - Type: GroupBy
+        Source: CZ:Defined:ResourceSummaryDisplay
+        Transforms:
+          - Type: Split
+            Delimiter: "-pvc-"
+            Index: 1
+        Format: "{0}-pvc"
+        Conditions:
+          - And:
+              - Source: Service
+                Equals: AmazonEC2
+              - Source: CZ:Defined:ResourceSummaryDisplay
+                Contains: "-pvc-"
+              - Source: Account
+                Equals:
+                  - '111111111111'
+                  - '111111111112'
+
+      # ── Rule 2: ECR repos — Normalize + Split to extract repository name ─────
+      # ECR resource summaries include the registry URL and namespace:
+      # "123456789012.dkr.ecr.us-east-1.amazonaws.com/payments/backend"
+      # After Normalize (lowercase + clean special chars), the value becomes:
+      # "123456789012-dkr-ecr-us-east-1-amazonaws-com-payments-backend"
+      # That's not useful as-is. Instead we scope to a simpler resource display
+      # pattern and use Split on "/" to extract just the repository name segment.
+      #
+      # For repositories named "payments/backend":
+      #   Normalize does not affect "/" — Split Delimiter: "/"  Index: 2
+      #   extracts "backend", Format: "{0}-repositories" → "backend-repositories"
+      #
+      # For top-level repos (no slash), the rule won't match because "/" is
+      # absent; they fall through to the next rule or "Not in Dimension".
+      - Type: GroupBy
+        Source: CZ:Defined:ResourceSummaryDisplay
+        Transforms:
+          - Type: Normalize
+          - Type: Split
+            Delimiter: "/"
+            Index: 2
+        Format: "{0}-repositories"
+        Conditions:
+          - And:
+              - Source: Service
+                Equals: AmazonECR
+              - Source: CZ:Defined:ResourceSummaryDisplay
+                Contains: "/"
+
+      # ── Rule 3: EFS file systems — Split on "-fs-", append "-filesystem" ─────
+      # EFS resources follow a naming convention "teamname-fs-<id>".
+      # Split on "-fs-" + Index: 1 extracts the team name prefix.
+      # Format appends "-filesystem" to make the element self-describing
+      # in Explorer (e.g. "payments-filesystem").
+      - Type: GroupBy
+        Source: CZ:Defined:ResourceSummaryDisplay
+        Transforms:
+          - Type: Lower
+          - Type: Split
+            Delimiter: "-fs-"
+            Index: 1
+        Format: "{0}-filesystem"
+        Conditions:
+          - And:
+              - Source: Service
+                Equals: AmazonEFS
+              - Source: CZ:Defined:ResourceSummaryDisplay
+                Contains: "-fs-"
+              - Source: Account
+                Equals:
+                  - '222222222221'
+                  - '222222222222'
+                  - '333333333331'

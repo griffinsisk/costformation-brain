@@ -1,0 +1,167 @@
+# --- metadata ---
+# pattern_id: complex-conditions-and-or-not
+# name: Deep And/Or/Not Nesting with Transforms
+# complexity: advanced
+# tags: [and, or, not, nesting, lower-transform, conditions, tag-variants]
+# use_when: >
+#   You need to classify charges using complex boolean logic: combining
+#   multiple required conditions (And), alternative signals (Or), and
+#   explicit exclusions (Not). Common in platform classification where the
+#   same concept appears across inconsistent tag values, multiple sources,
+#   and must exclude non-production variants from production scopes.
+# prerequisites:
+#   - Tag:component, Tag:Component, Tag:layer applied inconsistently
+#   - Account IDs for production and non-production accounts known
+# teaches:
+#   - And wraps a list of conditions that ALL must be true
+#   - Or wraps alternatives where ANY one match is sufficient
+#   - Not wraps conditions that must be FALSE for the rule to match
+#   - Lower transform inside Conditions applies to a single source,
+#     scoped to that condition's Source only (not the whole rule)
+#   - Combining And + Or: the And evaluates its children in sequence;
+#     one child can itself be an Or block
+#   - Combining And + Not: the Not child must evaluate false for the
+#     And to pass — used here to exclude preprod from a prod-only scope
+#   - Rule ordering: most-specific (tightest And) rules come first;
+#     broader fallbacks come last to avoid premature matching
+# anti_patterns:
+#   - Writing separate rules for each tag casing variant instead of using
+#     a Lower transform + single Equals condition
+#   - Placing Not at the top level when it should be inside an And — a
+#     standalone Not matches everything except the negated value, which
+#     is rarely what you want
+#   - Forgetting that multiple top-level conditions in a rule are OR'd —
+#     nest them under And if you need all conditions to hold simultaneously
+
+Dimensions:
+  PlatformClassification:
+    Name: Platform Classification
+    Child: Service
+
+    Rules:
+      # ── Rule 1: Platform resources — And + Or across tag casing variants ─────
+      # Goal: match charges tagged as "platform" regardless of whether the
+      # engineer used Tag:component, Tag:Component, or Tag:layer. Or combines
+      # all three sources so any one match qualifies the charge.
+      # The And also requires the charge to be AWS to avoid false positives
+      # from multi-cloud accounts with shared tag schemas.
+      - Type: Group
+        Name: Platform Core
+        Conditions:
+          - And:
+              - Source: CloudProvider
+                BeginsWith: AWS
+              - Or:
+                  - Source: Tag:component
+                    Lower: true
+                    Equals: platform
+                  - Source: Tag:Component
+                    Lower: true
+                    Equals: platform
+                  - Source: Tag:layer
+                    Lower: true
+                    Equals:
+                      - platform
+                      - infra
+                      - infrastructure
+                  - Source: K8s:Namespace
+                    Equals:
+                      - platform
+                      - platform-infra
+
+      # ── Rule 2: Production scope — And + Not to exclude preprod ─────────────
+      # Goal: match platform charges that are in Production accounts but NOT
+      # in the preprod sub-environment. The Not child prevents pre-production
+      # resources from leaking into the production-scoped bucket even when
+      # they share the same account. Lower transform normalizes the tag value
+      # before the Contains check.
+      - Type: Group
+        Name: Platform - Production Only
+        Conditions:
+          - And:
+              - Source: Account
+                Equals:
+                  - '111111111111'
+                  - '111111111112'
+              - Source: Tag:component
+                Lower: true
+                Equals: platform
+              - Not:
+                  - Source: Tag:env
+                    Lower: true
+                    Contains:
+                      - preprod
+                      - pre-prod
+                      - staging
+
+      # ── Rule 3: Observability — And + Or + Normalize for mixed tag values ────
+      # Goal: match observability/monitoring resources whose tag values arrive
+      # with mixed casing, hyphens, underscores, and mixed special characters
+      # (e.g. "Observability", "observability", "obs_platform", "Obs-Platform").
+      # Normalize combines Lower + Trim + special-char-to-dash in one pass,
+      # so a single Equals covers all variants after normalization.
+      # The Or captures both the tag signals and a K8s namespace fallback
+      # for workloads that are never tagged.
+      - Type: Group
+        Name: Observability
+        Conditions:
+          - And:
+              - Source: CloudProvider
+                BeginsWith: AWS
+              - Or:
+                  - Source: Tag:component
+                    Normalize: true
+                    Equals:
+                      - observability
+                      - obs-platform
+                      - monitoring
+                  - Source: Tag:layer
+                    Normalize: true
+                    Equals:
+                      - observability
+                      - monitoring
+                  - Source: K8s:Namespace
+                    Equals:
+                      - observability
+                      - monitoring
+                      - grafana
+                      - prometheus
+
+      # ── Rule 4: Security tooling — And + Not + Or ────────────────────────────
+      # Goal: match security-related platform charges in production accounts,
+      # but exclude pure audit/compliance resources (they belong in a separate
+      # Compliance dimension). The Not + Or block rejects any charge that is
+      # tagged as audit or compliance in any of the common tag variants.
+      - Type: Group
+        Name: Security Tools
+        Conditions:
+          - And:
+              - Source: Account
+                Equals:
+                  - '111111111111'
+                  - '111111111112'
+                  - '111111111113'
+              - Or:
+                  - Source: Tag:component
+                    Lower: true
+                    Equals:
+                      - security
+                      - iam
+                      - waf
+                  - Source: CZ:Defined:ResourceSummaryDisplay
+                    Contains:
+                      - guardduty
+                      - security-hub
+                      - waf
+              - Not:
+                  - Or:
+                      - Source: Tag:component
+                        Lower: true
+                        Equals:
+                          - audit
+                          - compliance
+                      - Source: Tag:layer
+                        Lower: true
+                        Equals:
+                          - audit
+                          - compliance

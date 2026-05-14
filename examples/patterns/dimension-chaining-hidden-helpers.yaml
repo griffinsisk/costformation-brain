@@ -1,0 +1,140 @@
+# --- metadata ---
+# pattern_id: dimension-chaining-hidden-helpers
+# name: Hidden Helper Dimension + Multiple Visible Consumers
+# complexity: advanced
+# tags: [hidden-helper, chaining, user-defined-source, and-conditions, groupby]
+# use_when: >
+#   You have a base classification (e.g. Production vs Non-Production) that
+#   multiple visible dimensions both need to reference. Instead of duplicating
+#   account lists and tag conditions in every consumer, encode the base logic
+#   once in a hidden dimension and reference it via User:Defined: in each
+#   visible dimension. This is the canonical pattern for shared logic reuse.
+# prerequisites:
+#   - Account-to-environment mapping known (or Tag:env applied)
+#   - Tag:team applied to resources for cross-cutting team/env elements
+# teaches:
+#   - Hide: true keeps helpers out of Explorer while still being referenceable
+#   - User:Defined:<Id> is the correct prefix for referencing custom dims
+#   - And conditions combining a User:Defined: source with a Tag: source
+#     produce cross-product element names (e.g. "Backend - Production")
+#   - GroupBy from a User:Defined: source inherits the helper's element names
+#     without re-enumerating them — avoids duplication and drift
+#   - Both visible dims set Child: Service for drill-down
+#   - Hidden dims should NOT set Child — they are never displayed
+# anti_patterns:
+#   - Copy-pasting account conditions into every consumer dimension instead
+#     of referencing the shared hidden helper
+#   - Setting DefaultValue on the hidden helper — forces every line item
+#     through it even when no match is needed
+#   - Referencing a hidden dim before it is published (order matters in the file)
+
+Dimensions:
+  # ── Hidden helper ────────────────────────────────────────────────────────────
+  # Classifies accounts into Production / Non-Production.
+  # Referenced downstream by TeamByEnvironment and CostByEnvironment.
+  # No DefaultValue — charges from unknown accounts surface as
+  # "Not in Dimension" in consumers, which flags gaps clearly.
+  EnvironmentBase:
+    Name: Environment Base (helper)
+    Hide: true
+    Source: Account
+    Rules:
+      - Type: Group
+        Name: Production
+        Conditions:
+          - Equals:
+              - '111111111111'
+              - '111111111112'
+              - '111111111113'
+
+      - Type: Group
+        Name: Non-Production
+        Conditions:
+          - Equals:
+              - '222222222221'
+              - '222222222222'
+              - '222222222223'
+              - '333333333331'
+
+  # ── Visible dim 1: cross-product of team × environment ───────────────────────
+  # Each rule uses And to combine a User:Defined:EnvironmentBase check with
+  # a Tag:team check, producing named buckets like "Backend - Production".
+  # Rules are ordered most-specific-first; broader Or fallbacks come last.
+  TeamByEnvironment:
+    Name: Team by Environment
+    Child: Service
+    Transforms:
+      - Type: Lower
+    Rules:
+      - Type: Group
+        Name: Backend - Production
+        Conditions:
+          - And:
+              - Source: User:Defined:EnvironmentBase
+                Equals: Production
+              - Source: Tag:team
+                Equals: backend
+
+      - Type: Group
+        Name: Backend - Non-Production
+        Conditions:
+          - And:
+              - Source: User:Defined:EnvironmentBase
+                Equals: Non-Production
+              - Source: Tag:team
+                Equals: backend
+
+      - Type: Group
+        Name: Frontend - Production
+        Conditions:
+          - And:
+              - Source: User:Defined:EnvironmentBase
+                Equals: Production
+              - Source: Tag:team
+                Equals:
+                  - frontend
+                  - web
+
+      - Type: Group
+        Name: Frontend - Non-Production
+        Conditions:
+          - And:
+              - Source: User:Defined:EnvironmentBase
+                Equals: Non-Production
+              - Source: Tag:team
+                Equals:
+                  - frontend
+                  - web
+
+      - Type: Group
+        Name: Platform - Production
+        Conditions:
+          - And:
+              - Source: User:Defined:EnvironmentBase
+                Equals: Production
+              - Source: Tag:team
+                Equals:
+                  - platform
+                  - infra
+
+      - Type: Group
+        Name: Platform - Non-Production
+        Conditions:
+          - And:
+              - Source: User:Defined:EnvironmentBase
+                Equals: Non-Production
+              - Source: Tag:team
+                Equals:
+                  - platform
+                  - infra
+
+  # ── Visible dim 2: simple GroupBy from the helper ────────────────────────────
+  # Passes through EnvironmentBase element names (Production / Non-Production)
+  # without re-listing conditions. If the helper's logic changes, this dim
+  # picks up the change automatically.
+  CostByEnvironment:
+    Name: Cost by Environment
+    Child: Service
+    Rules:
+      - Type: GroupBy
+        Source: User:Defined:EnvironmentBase

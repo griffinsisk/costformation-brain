@@ -1,0 +1,118 @@
+# --- metadata ---
+# pattern_id: resource-summary-override
+# name: Override CZ:Defined:ResourceSummaryID_Override
+# complexity: advanced
+# tags: [override, resource-summary, hide, multi-source, and-conditions, or-conditions]
+# use_when: >
+#   CloudZero's default ResourceSummaryDisplay grouping doesn't match your
+#   naming conventions or business requirements. Use Override to replace the
+#   built-in CZ:Defined:ResourceSummaryID_Override with your own grouping
+#   logic. Always hide the override dimension — it operates silently to
+#   reshape how resource summaries appear everywhere else in CloudZero.
+# prerequisites:
+#   - Understanding of which resource types need custom grouping
+#   - Account IDs for the accounts whose resources you are reshaping
+#   - CZ:Defined:BillingLineItem values to scope to Usage charges only
+# teaches:
+#   - Override: CZ:Defined:ResourceSummaryID_Override at the dimension header
+#   - Hide: true is mandatory for override dims — they should never appear
+#     in Explorer as standalone dimensions
+#   - Sources (plural) array syntax for multi-source matching with first-non-null
+#   - Account Equals with an array of IDs for multi-account scoping
+#   - Nested Or inside And for complex inclusion matching
+#   - CZ:Defined:BillingLineItem Contains scopes rules to Usage charges only
+#   - CloudProvider BeginsWith AWS limits the rule to AWS line items
+# anti_patterns:
+#   - Omitting Hide: true on an override dim — causes duplicate entries
+#   - Using Override without scoping conditions — rewrites ALL resources
+#     and may produce unexpected groupings for resources you didn't intend
+#     to affect
+#   - Using raw ResourceId as a condition source — high cardinality and
+#     expensive in Snowflake; use CZ:Defined:ResourceSummaryDisplay instead
+#   - Forgetting CZ:Defined: prefix on BillingLineItem
+
+Dimensions:
+  ResourceGroupOverride:
+    Name: Resource Group Override
+    Hide: true
+    Override: CZ:Defined:ResourceSummaryID_Override
+    Rules:
+      # ── Rule 1: Application resources, multi-source tag fallback ─────────────
+      # Scoped to Usage charges on AWS accounts. Uses Sources array so that
+      # Tag:Application (canonical form) is checked first, then the lowercase
+      # variant Tag:application. The nested Or inside the And provides
+      # alternative resource name signals for resources that lack tags.
+      - Type: Group
+        Name: Application Resources
+        Conditions:
+          - And:
+              - Source: CZ:Defined:BillingLineItem
+                Contains: Usage
+              - Source: CloudProvider
+                BeginsWith: AWS
+              - Source: Account
+                Equals:
+                  - '111111111111'
+                  - '111111111112'
+                  - '111111111113'
+              - Or:
+                  - Sources:
+                      - Tag:Application
+                      - Tag:application
+                    HasValue: true
+                  - Source: CZ:Defined:ResourceSummaryDisplay
+                    Contains:
+                      - app-server
+                      - application
+
+      # ── Rule 2: Data pipeline resources, multi-account + name pattern ────────
+      # Targets a second set of accounts running data workloads. Or inside And
+      # lets either a tag value OR a resource name pattern qualify the charge.
+      - Type: Group
+        Name: Data Pipeline Resources
+        Conditions:
+          - And:
+              - Source: CZ:Defined:BillingLineItem
+                Contains: Usage
+              - Source: CloudProvider
+                BeginsWith: AWS
+              - Source: Account
+                Equals:
+                  - '222222222221'
+                  - '222222222222'
+              - Or:
+                  - Sources:
+                      - Tag:Application
+                      - Tag:application
+                    Equals:
+                      - data-pipeline
+                      - etl
+                  - Source: CZ:Defined:ResourceSummaryDisplay
+                    Contains:
+                      - data-pipeline
+                      - glue-job
+                      - emr-cluster
+
+      # ── Rule 3: Shared infrastructure, no tag required ───────────────────────
+      # Catches shared networking and platform resources that are never tagged.
+      # Broad resource name patterns are intentional here — these accounts
+      # contain only platform infra and the account scope prevents false matches.
+      - Type: Group
+        Name: Shared Infrastructure
+        Conditions:
+          - And:
+              - Source: CZ:Defined:BillingLineItem
+                Contains: Usage
+              - Source: CloudProvider
+                BeginsWith: AWS
+              - Source: Account
+                Equals:
+                  - '333333333331'
+                  - '333333333332'
+              - Or:
+                  - Source: CZ:Defined:ResourceSummaryDisplay
+                    BeginsWith:
+                      - shared-
+                      - platform-
+                  - Source: CZ:Defined:ResourceSummaryDisplay
+                    Contains: nat-gateway
