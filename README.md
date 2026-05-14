@@ -85,6 +85,29 @@ The `my-org/` directory stores your org-specific context. It's auto-populated fr
 
 Without the instruction file, agents confidently generate wrong CostFormation syntax from general knowledge. The output looks plausible but uses incorrect structure. The brain fixes this.
 
+## Validator and Eval
+
+The repo includes a CostFormation linter and eval framework. Requires `ruamel.yaml` (`pip install ruamel.yaml`).
+
+```bash
+# Lint CostFormation files (11 error rules, 5 warning rules)
+python3 validator/lint.py costformation.cz.yaml
+python3 validator/lint.py examples/patterns/*.yaml
+
+# Integrity checks (index consistency, anonymization scan)
+python3 validator/lint.py --check-integrity
+
+# Run eval cases against golden outputs
+python3 evals/run.py --validate-golden
+python3 evals/run.py --assert-golden
+python3 evals/run.py --list
+
+# Run tests (requires pytest)
+python3 -m pytest tests/ -v
+```
+
+**Note:** Tests use `pytest`, not `unittest discover`. Install with `pip install pytest`.
+
 ## Optional: Connect the CloudZero MCP
 
 The [CloudZero MCP server](https://docs.cloudzero.com/docs/ai-mcp-server) is read-only but significantly enriches the agent's understanding of your environment. With it connected, the agent can query your account's dimensions, costs, tags, and coverage data while writing definitions.
