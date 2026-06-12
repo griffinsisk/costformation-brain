@@ -157,3 +157,52 @@ def test_unknown_element_is_error_with_suggestion():
     diags = check_element_names([rec], {"Team-Alpha", "Team-Beta"})
     assert _ids(diags) == ["telemetry-unknown-element"]
     assert "Team-Alpha" in diags[0].message  # close-match suggestion
+
+
+# ---------------------------------------------------------------------------
+# Task 4: Coverage warnings
+# ---------------------------------------------------------------------------
+
+def _rec(ts, element="Team-Alpha", granularity="HOURLY"):
+    return dict(GOOD_RECORD, timestamp=ts, element_name=element,
+                granularity=granularity)
+
+
+def test_recent_contiguous_records_have_no_warnings():
+    now = datetime.datetime.now(datetime.timezone.utc).replace(
+        minute=0, second=0, microsecond=0)
+    recs = [_rec((now - datetime.timedelta(hours=h)).strftime("%Y-%m-%dT%H:00:00Z"))
+            for h in range(1, 4)]
+    assert check_coverage(recs) == []
+
+
+def test_backfill_beyond_90_days_warns():
+    old = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=120)
+    recs = [_rec(old.strftime("%Y-%m-%dT%H:00:00Z"))]
+    diags = check_coverage(recs)
+    assert "telemetry-backfill-90d" in _ids(diags)
+    assert all(d.severity == Severity.WARN for d in diags)
+
+
+def test_gap_in_hourly_windows_warns():
+    recs = [_rec("2026-06-01T10:00:00Z"), _rec("2026-06-01T14:00:00Z")]
+    diags = check_coverage(recs)
+    gap = [d for d in diags if d.rule_id == "telemetry-window-gap"]
+    assert len(gap) == 1
+    assert "3 missing" in gap[0].message  # 11:00, 12:00, 13:00
+
+
+def test_gaps_tracked_per_element():
+    # Each element has contiguous coverage; no cross-element false positive
+    recs = [_rec("2026-06-01T10:00:00Z", "Team-Alpha"),
+            _rec("2026-06-01T11:00:00Z", "Team-Alpha"),
+            _rec("2026-06-01T14:00:00Z", "Team-Beta")]
+    assert [d for d in check_coverage(recs)
+            if d.rule_id == "telemetry-window-gap"] == []
+
+
+def test_daily_gap_warns():
+    recs = [_rec("2026-06-01T00:00:00Z", granularity="DAILY"),
+            _rec("2026-06-03T00:00:00Z", granularity="DAILY")]
+    diags = check_coverage(recs)
+    assert "telemetry-window-gap" in _ids(diags)
