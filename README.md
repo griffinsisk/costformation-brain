@@ -118,13 +118,16 @@ The brain works without the MCP â€” it parses your costformation file directly â
 
 | Resource | URL |
 |---|---|
-| CostFormation Overview | https://docs.cloudzero.com/docs/cost-formation-definition-language |
-| CFDL Guide | https://docs.cloudzero.com/docs/costformation-definition-language-guide |
-| CFDL Language Reference | https://docs.cloudzero.com/docs/cfdl-reference |
-| Allocation Short Form Rules | https://docs.cloudzero.com/docs/allocation-short-form-rules |
-| Allocating Shared Costs | https://docs.cloudzero.com/docs/costformation-allocating-shared-costs |
+| CostFormation Overview | https://docs.cloudzero.com/docs/allocate-through-yaml |
+| CostFormation Reference (CFDL) | https://docs.cloudzero.com/docs/cfdl-reference |
+| CostFormation Templates | https://docs.cloudzero.com/docs/dimension-patterns |
+| Building Dimensions | https://docs.cloudzero.com/docs/dimensions |
+| Splitting Shared Costs | https://docs.cloudzero.com/docs/splitting-shared-costs |
+| Telemetry Streams | https://docs.cloudzero.com/docs/telemetry-streams |
+| Sending Telemetry via API | https://docs.cloudzero.com/docs/send-via-api |
 | Telemetry API Reference | https://docs.cloudzero.com/reference/allocation-telemetry-api-1 |
-| Advanced Dimension Features | https://docs.cloudzero.com/docs/ds-advanced-features |
+| Unit Economics | https://docs.cloudzero.com/docs/unit-economics |
+| Unit Cost Tutorial | https://docs.cloudzero.com/docs/tutorial-calculate-unit-cost-metrics |
 | CloudZero MCP Server | https://docs.cloudzero.com/docs/ai-mcp-server |
 | CloudZero CostFormation Toolkit (VS Code) | https://marketplace.visualstudio.com/items?itemName=cloudzero.costformation-toolkit |
 | Claude Code Skills | https://docs.cloudzero.com/docs/ai-skills |
