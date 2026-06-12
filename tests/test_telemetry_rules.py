@@ -4,6 +4,7 @@ import pytest
 from validator.rules.telemetry import (
     check_record_fields,
     check_timestamp,
+    check_filter_keys,
 )
 from validator.diagnostic import Severity
 
@@ -81,3 +82,39 @@ def test_non_hourly_aligned_is_error():
 def test_plus_zero_offset_is_accepted_as_utc():
     rec = dict(GOOD_RECORD, timestamp="2026-06-01T14:00:00+00:00")
     assert check_timestamp(rec, 0) == []
+
+
+# ---------------------------------------------------------------------------
+# Task 2: Filter-key syntax
+# ---------------------------------------------------------------------------
+
+def test_custom_and_tag_filter_keys_pass():
+    rec = dict(GOOD_RECORD, filter={
+        "custom:Spend Category": ["Shared"],
+        "tag:environment": ["prod"],
+        "k8s_namespace:payments": ["payments"],
+    })
+    assert check_filter_keys(rec, 0) == []
+
+
+def test_costformation_syntax_in_filter_is_error():
+    # The known failure mode: CF source syntax instead of telemetry filter keys
+    for bad_key in ("User:Defined:SpendCategory", "CZ:Defined:GenAI_Model",
+                    "Tag:environment", "K8s:Namespace"):
+        rec = dict(GOOD_RECORD, filter={bad_key: ["Shared"]})
+        diags = check_filter_keys(rec, 0)
+        assert "telemetry-filter-cf-syntax" in _ids(diags), bad_key
+        assert diags[0].severity == Severity.ERROR
+
+
+def test_unknown_filter_prefix_is_warning():
+    rec = dict(GOOD_RECORD, filter={"dimension:Spend Category": ["Shared"]})
+    diags = check_filter_keys(rec, 0)
+    assert "telemetry-filter-unknown-key" in _ids(diags)
+    assert diags[0].severity == Severity.WARN
+
+
+def test_filter_value_not_list_is_error():
+    rec = dict(GOOD_RECORD, filter={"custom:Spend Category": "Shared"})
+    assert "telemetry-filter-cf-syntax" not in _ids(check_filter_keys(rec, 0))
+    assert any(d.rule_id == "telemetry-bad-filter" for d in check_filter_keys(rec, 0))
