@@ -1,12 +1,21 @@
 """Tests for telemetry payload validation rules."""
+import datetime
+import pathlib
+
 import pytest
 
 from validator.rules.telemetry import (
     check_record_fields,
     check_timestamp,
     check_filter_keys,
+    check_element_names,
+    extract_element_names,
+    check_coverage,
 )
 from validator.diagnostic import Severity
+
+FIXTURES = pathlib.Path(__file__).parent / "fixtures"
+TARGET_YAML = str(FIXTURES / "telemetry_target.yaml")
 
 
 GOOD_RECORD = {
@@ -118,3 +127,33 @@ def test_filter_value_not_list_is_error():
     rec = dict(GOOD_RECORD, filter={"custom:Spend Category": "Shared"})
     assert "telemetry-filter-cf-syntax" not in _ids(check_filter_keys(rec, 0))
     assert any(d.rule_id == "telemetry-bad-filter" for d in check_filter_keys(rec, 0))
+
+
+# ---------------------------------------------------------------------------
+# Task 3: Element-name cross-check
+# ---------------------------------------------------------------------------
+
+def test_extract_element_names_from_group_rules():
+    names = extract_element_names(TARGET_YAML, "SpendCategory")
+    assert names == {"Team-Alpha", "Team-Beta", "Shared"}
+
+
+def test_extract_returns_none_for_groupby_dimension():
+    # GroupBy elements are dynamic — cannot be statically verified
+    assert extract_element_names(TARGET_YAML, "DynamicTeams") is None
+
+
+def test_extract_unknown_dimension_raises():
+    with pytest.raises(ValueError):
+        extract_element_names(TARGET_YAML, "Nope")
+
+
+def test_known_element_passes():
+    assert check_element_names([GOOD_RECORD], {"Team-Alpha", "Team-Beta"}) == []
+
+
+def test_unknown_element_is_error_with_suggestion():
+    rec = dict(GOOD_RECORD, element_name="team-alpha")  # wrong case
+    diags = check_element_names([rec], {"Team-Alpha", "Team-Beta"})
+    assert _ids(diags) == ["telemetry-unknown-element"]
+    assert "Team-Alpha" in diags[0].message  # close-match suggestion
