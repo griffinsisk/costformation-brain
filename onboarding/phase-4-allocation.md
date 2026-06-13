@@ -48,10 +48,9 @@ differ.
 a real usage signal is available. The metric interview guide below tells you what to ask for.
 
 **Expansion-factor advisory:** before recommending rung 3 for a small bucket or a
-high-cardinality lens (e.g., 200 customer tenants), flag the expansion cost:
-`targeted line items × allocation elements = Snowflake rows`. See `allocation-design.md`.
-When the processing cost exceeds the allocation value, recommend even split with an
-upgrade note instead.
+high-cardinality lens (e.g., 200 customer tenants), flag the expansion cost (see
+phase-3 Behavior 3 and `allocation-design.md`). When the processing cost exceeds the
+allocation value, recommend even split with an upgrade note instead.
 
 ---
 
@@ -401,8 +400,6 @@ per-dimension:
 Follow STEPs 2–3 in `examples/patterns/allocation-telemetry-basic.yaml`. The hidden
 `AllocateByStreams` dimension references `bedrock-tokens-by-env-v1`. The visible combined
 dimension (`GroupBy`, `CoalesceSources: true`) merges it with direct Environment spend.
-`AllocateByStreams` takes no `SpendToAllocate` — the stream's filter (`custom:Bedrock
-Telemetry Target` → `Bedrock`) scopes the allocation.
 
 ---
 

@@ -9,7 +9,7 @@ confirmed visible by the customer in the UI, and recorded in the state file.
 
 ---
 
-## 4.1 Entry Criteria
+## Entry Criteria
 
 1. **Phase 1 complete** — `my-org/onboarding-state.yaml` shows
    `phases.discover.status: complete` with recorded exit-checks.
@@ -21,7 +21,7 @@ Block and explain if either condition is unmet.
 
 ---
 
-## 4.2 Candidate Dimension Catalog
+## Candidate Dimension Catalog
 
 Every new CloudZero org should consider these seven concepts. Cross-reference
 the signal inventory against this table in both directions:
@@ -43,7 +43,7 @@ Gaps are first-class findings, not failures.
 
 ---
 
-## 4.3 Two-Directional Matching Rule
+## Two-Directional Matching Rule
 
 **Signals → catalog:** for each signal in the confirmed inventory, find the
 catalog concept it most closely maps to. That concept becomes a candidate.
@@ -61,7 +61,7 @@ they are not a sign that something went wrong.
 
 ---
 
-## 4.4 Ranked Starter-Set Proposal Format
+## Ranked Starter-Set Proposal Format
 
 Present candidates ranked by estimated coverage × business value before writing
 any YAML. Each candidate entry:
@@ -78,7 +78,7 @@ any YAML. Each candidate entry:
 
 ---
 
-## 4.5 Human Questions
+## Human Questions
 
 Ask only what the data cannot answer. Examples (adapt to what you found):
 
@@ -100,30 +100,13 @@ Ask one question at a time. Offer concrete candidates; never ask open-ended
 
 ---
 
-## 4.6 Build Step
+## Build Step
 
-**Selected dimensions go through the existing write flow unchanged.** Do not
-invent a parallel path here. Follow CLAUDE.md and SKILL.md exactly:
-
-1. Read the required corpus files (routing table in `journey.md § 7`).
-2. Run the pre-generation checklist from SKILL.md: MCP query, my-org/ freshness,
-   `performance-rules.md`, `allocation-design.md` (for allocation), pattern check.
-3. Build in a working sub-folder — never edit the production file directly:
-   ```
-   <concept>-dimension_<YYYY-MM-DD>/
-     <concept>_<YYYY-MM-DD>.yaml          # clean, copy-paste-ready YAML
-     <concept>_<YYYY-MM-DD>_comments.md   # what it does, paste location, next steps
-   ```
-4. Validate: `python3 costformation-brain/validator/lint.py <file>` — fix all
-   ERRORs before presenting; briefly summarize any WARNINGs.
-5. Present the clean YAML. Customer copies it into the production file.
-6. After publish: verify via MCP that the dimension appears in CloudZero.
-
-Record working-folder paths in the state file under `artifacts`.
+Selected dimensions go through the existing SKILL.md write flow unchanged — pre-generation checklist, timestamped backup + change sub-folder, validator, present. Record the working-folder paths under `artifacts` in the state file.
 
 ---
 
-## 4.7 Deliverables
+## Deliverables
 
 - **Ranked starter-set proposal** (in conversation) — all candidates with
   evidence, coverage, pattern, and what cannot be inferred.
@@ -136,7 +119,7 @@ Record working-folder paths in the state file under `artifacts`.
 
 ---
 
-## 4.8 Exit Criteria and Recording Rule
+## Exit Criteria and Recording Rule
 
 Run all checks before flipping status to `complete`. Write each result first.
 

@@ -26,7 +26,7 @@ somewhere.
 
 ---
 
-## 4.1 Entry Criteria
+## Entry Criteria
 
 1. **At least one dimension published** — `my-org/onboarding-state.yaml` shows
    `phases.dimensions.status: complete` with at least one dimension confirmed
@@ -38,7 +38,7 @@ Block and explain if either condition is unmet.
 
 ---
 
-## 4.2 Agent-Gathered Inputs — Detection Catalog
+## Agent-Gathered Inputs — Detection Catalog
 
 Run all seven detection queries via MCP. Do not ask the customer to identify
 shared spend. The data answers this; the customer confirms classifications.
@@ -115,7 +115,7 @@ Report: platform name, total $/mo, whether any per-team split signal exists
 
 ---
 
-## 4.3 The Cross-Dimension Matrix
+## The Cross-Dimension Matrix
 
 Build this table from the detection catalog results. Recompute from MCP at
 each loop iteration.
@@ -145,7 +145,7 @@ coverage exists.
 
 ---
 
-## 4.4 Classification
+## Classification
 
 After building the matrix, classify each bucket:
 
@@ -159,7 +159,7 @@ corrects each one.
 
 ---
 
-## 4.5 Three Matrix-Driven Behaviors
+## Three Matrix-Driven Behaviors
 
 ### Behavior 1: Informed Prioritization
 
@@ -216,7 +216,7 @@ picks. Flag it; don't mandate it.
 
 ---
 
-## 4.6 Human Questions
+## Human Questions
 
 Ask one at a time. Offer concrete candidates from the data.
 
@@ -241,7 +241,7 @@ the detection catalog already surfaced.
 
 ---
 
-## 4.7 Deliverables
+## Deliverables
 
 1. **The matrix** — bucket × dimension table with $/mo and cell values as
    described in §4.3. Record at `shared-spend matrix` in the state file
@@ -256,7 +256,7 @@ entries under `phases.allocation`.
 
 ---
 
-## 4.8 Exit Criteria and Recording Rule
+## Exit Criteria and Recording Rule
 
 Record each check in the state file **before** flipping status to `complete`.
 
@@ -268,7 +268,7 @@ shared-spend:
     - check: shared-spend matrix presented and confirmed
       result: pass
       date: <ISO date>
-    - check: per-bucket classification confirmed (splittable vs needs telemetry)
+    - check: per-bucket classification confirmed (splittable vs needs a usage signal)
       result: pass
       date: <ISO date>
     - check: allocation loop order chosen and recorded

@@ -9,7 +9,7 @@ and `my-org/` detail files written via the auto-populate machinery.
 
 ---
 
-## 4.1 Entry Criteria
+## Entry Criteria
 
 Check both before starting. Block and explain if either is unmet.
 
@@ -26,7 +26,7 @@ costformation file provides.
 
 ---
 
-## 4.2 Agent-Gathered Inputs
+## Agent-Gathered Inputs
 
 Query all six sources before presenting anything. Do not ask the customer for
 account IDs, tag keys, resource patterns, or anything derivable from the data.
@@ -120,7 +120,7 @@ S3 (11%) — RDS and NAT are shared-spend candidates for phase 3."
 
 ---
 
-## 4.3 Human Questions
+## Human Questions
 
 **Every observation cites the signal that produced it and ends in a confirmation
 question, never an assertion.**
@@ -157,7 +157,7 @@ immediately — do not rely on conversation context to carry them forward.
 
 ---
 
-## 4.4 Deliverables
+## Deliverables
 
 **Signal inventory table** — one row per signal found, plus gap rows for catalog
 concepts with no signal.
@@ -178,7 +178,7 @@ inventory to a file. Writing it to conversation only is acceptable for phase 1.
 
 ---
 
-## 4.5 Exit Criteria and Recording Rule
+## Exit Criteria and Recording Rule
 
 Run all checks before flipping status to `complete`. Write the result of each
 check to the state file first — only then flip.
