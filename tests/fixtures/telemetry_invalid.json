@@ -1,0 +1,11 @@
+{
+  "records": [
+    {
+      "timestamp": "2026-06-01T14:23:11Z",
+      "granularity": "WEEKLY",
+      "filter": {"User:Defined:SpendCategory": ["Shared"]},
+      "element_name": "team-alpha",
+      "value": 75000
+    }
+  ]
+}
