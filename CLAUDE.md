@@ -55,6 +55,13 @@ Before writing any CostFormation, check whether `costformation-brain/my-org/` ne
 
 **Never overwrite context.md.** That file is append-only. See the guard at the top of the file.
 
+## Onboarding Journey
+
+A guided, resumable onboarding path lives at `costformation-brain/onboarding/journey.md`.
+- **Offer it once** when the costformation file has fewer than 3 custom dimensions and `my-org/onboarding-state.yaml` shows no prior offer or decline.
+- **On every session start**, check `my-org/onboarding-state.yaml` for `waiting-external` entries past their `verify-after` date and surface them ("telemetry verification for stream X is overdue — check it now?"). This check is independent of the offer condition.
+- **Enter or resume** on "onboard", "suggest dimensions", "continue onboarding", or "where were we" — journey.md has the resume-reconciliation rules.
+
 ## Always Query MCP First
 
 **When the user asks you to create or modify a dimension, always query the CloudZero MCP — even if you already have a CSV, an existing costformation file, or prior context.** The MCP is a cross-reference, not a fallback. It catches accounts the CSV missed, tags the file doesn't show, and dimensions that exist in CloudZero but not in the local YAML.

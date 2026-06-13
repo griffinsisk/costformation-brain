@@ -24,6 +24,7 @@ Consult the relevant file based on what you're working on:
 | Real worked examples | `examples.md` |
 | Finding a pattern example to start from | `examples/index.yaml` → `examples/patterns/` |
 | Customer org context (accounts, tags, goals) | `my-org/index.yaml` → `my-org/` |
+| Onboarding journey (new customer, suggest dimensions, shared spend, telemetry, unit cost) | `onboarding/journey.md` → phase docs |
 
 ## Common Tasks
 
@@ -35,6 +36,7 @@ Consult the relevant file based on what you're working on:
 | Review/debug existing dimension | `my-org/index.yaml`, `my-org/context.md`, `my-org/`, `performance-rules.md`, `sources.md`, `conditions-and-transforms.md`, `dimension-types.md` |
 
 **Before any CostFormation work:**
+0. If the costformation file has fewer than 3 custom dimensions, or my-org/onboarding-state.yaml has a waiting-external entry past its verify-after date, read onboarding/journey.md and follow its entry rules.
 1. **Always query the CloudZero MCP** (if connected) — even if you have a CSV, an existing file, or prior context. The MCP is a cross-reference, not a fallback.
 2. Check if `my-org/` needs populating or refreshing (see agent instruction file for freshness rules).
 3. Read `my-org/index.yaml` first for a compact summary, then `my-org/context.md` (always). Load full detail files as needed.
