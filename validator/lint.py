@@ -30,6 +30,7 @@ from validator.rules.integrity import (
     IndexConsistencyRule,
     MetadataIncompleteRule,
 )
+from validator.rules.onboarding_state import OnboardingStateRule
 from validator.rules.performance import (
     AllocateByStreamsSPTARule,
     BroadSpendToAllocateRule,
@@ -62,6 +63,7 @@ INTEGRITY_RULES = [
     IndexConsistencyRule(),
     MetadataIncompleteRule(),
     CustomerDataLeakRule(),
+    OnboardingStateRule(),
 ]
 
 
