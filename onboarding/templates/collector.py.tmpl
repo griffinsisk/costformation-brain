@@ -1,0 +1,109 @@
+#!/usr/bin/env python3
+"""CloudZero telemetry collector — TEMPLATE.
+
+The onboarding agent customizes this per customer:
+  1. Fill in the CONFIG constants.
+  2. Implement collect_usage() against the customer's usage source.
+  3. The customer deploys it on a schedule (cron/Scheduled Lambda) matching
+     GRANULARITY — within 2 hours of the window it covers (telemetry.md rule 5).
+
+Validate output before first send:
+  python3 collector.py --dry-run > payload.json
+  python3 costformation-brain/validator/telemetry_check.py payload.json \
+      --costformation <costformation file> --target-dimension <TARGET_DIMENSION_ID>
+
+Requires: Python 3.8+, stdlib only. API key via the CZ_API_KEY env var.
+"""
+import datetime
+import json
+import os
+import sys
+import urllib.error
+import urllib.request
+
+# --- CONFIG — the onboarding agent fills these in ---------------------------
+STREAM_NAME = "REPLACE_ME_stream_name"          # must match CostFormation Streams entry
+TARGET_DIMENSION_DISPLAY_NAME = "REPLACE_ME"    # the Name: field, not the YAML ID
+POOL_ELEMENTS = ["REPLACE_ME"]                  # element(s) of the spend pool to split
+GRANULARITY = "HOURLY"                          # HOURLY | DAILY | MONTHLY
+API_BASE = "https://api.cloudzero.com/v1/telemetry/"
+# ----------------------------------------------------------------------------
+
+
+def collect_usage(window_start: datetime.datetime) -> dict:
+    """Return {element_name: usage_value} for the window starting at window_start.
+
+    element_name keys must EXACTLY match (case-sensitive) the target
+    dimension's element names. Values are proportions — CloudZero normalizes
+    within each window, so raw counts are fine.
+
+    === AGENT: implement this against the customer's usage source ===
+    (app logs, gateway metrics, pg_stat, vendor usage API, a CSV export, ...)
+    """
+    raise NotImplementedError("customize collect_usage() for this customer")
+
+
+def previous_window(now: datetime.datetime) -> datetime.datetime:
+    """Start of the most recent completed window, hourly-aligned UTC."""
+    top_of_hour = now.replace(minute=0, second=0, microsecond=0)
+    if GRANULARITY == "HOURLY":
+        return top_of_hour - datetime.timedelta(hours=1)
+    if GRANULARITY == "DAILY":
+        midnight = top_of_hour.replace(hour=0)
+        return midnight - datetime.timedelta(days=1)
+    first = top_of_hour.replace(day=1, hour=0)
+    last_month_end = first - datetime.timedelta(days=1)
+    return last_month_end.replace(day=1, hour=0)
+
+
+def build_records(window_start: datetime.datetime, usage: dict) -> list:
+    timestamp = window_start.strftime("%Y-%m-%dT%H:00:00Z")
+    flt = {"custom:" + TARGET_DIMENSION_DISPLAY_NAME: POOL_ELEMENTS}
+    return [
+        {
+            "timestamp": timestamp,
+            "granularity": GRANULARITY,
+            "filter": flt,
+            "element_name": element,
+            "value": str(value),
+        }
+        for element, value in sorted(usage.items())
+    ]
+
+
+def post(records: list) -> None:
+    api_key = os.environ.get("CZ_API_KEY")
+    if not api_key:
+        sys.exit("error: set the CZ_API_KEY environment variable")
+    body = json.dumps({"records": records}).encode()
+    req = urllib.request.Request(
+        API_BASE + STREAM_NAME,
+        data=body,
+        headers={"Authorization": "Bearer " + api_key,
+                 "Content-Type": "application/json"},
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            print(f"sent {len(records)} records to {STREAM_NAME}: HTTP {resp.status}")
+    except urllib.error.HTTPError as exc:
+        sys.exit(f"error: telemetry API returned HTTP {exc.code}: "
+                 f"{exc.read().decode(errors='replace')[:500]}")
+
+
+def main() -> None:
+    now = datetime.datetime.now(datetime.timezone.utc)
+    window_start = previous_window(now)
+    usage = collect_usage(window_start)
+    if not usage:
+        print(f"no usage for window {window_start.isoformat()} — nothing sent")
+        return
+    records = build_records(window_start, usage)
+    if "--dry-run" in sys.argv:
+        print(json.dumps({"records": records}, indent=2))
+        return
+    post(records)
+
+
+if __name__ == "__main__":
+    main()
