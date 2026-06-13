@@ -65,7 +65,7 @@ Check it now?"
 
 **This check must NOT be gated on the auto-offer condition.** A customer mid-journey already has 3+ custom dimensions and was already offered, so the auto-offer check (`< 3 dimensions AND no prior offer`) is structurally unreachable for them. Gating the wait check on the auto-offer would permanently suppress it for the customers who need it most — those who deployed a collector and then continued building out dimensions.
 
-Surface the wait check unconditionally. The customer can dismiss it; it does not recur within the same session.
+Surface the wait check unconditionally. The customer can dismiss it; it does not recur within the same session. "Once per session" means: don't repeat the nudge within the same conversation — conversational context is sufficient tracking; nothing is persisted to the state file for this purpose, and a new session will re-surface any overdue wait until it is resolved.
 
 ### 2.4 Resume Reconciliation
 
@@ -181,6 +181,8 @@ decisions:
   - "tenant → product mapping provided, persisted to my-org/context.md (2026-06-13)"
 ```
 
+**Informational fields.** Fields beyond those in the table above (`decisions`, `completed`, `matrix-updated`, `stream`, `reason`) are informational — write them freely for context; the validator does not check them. Only the table's structural rules are enforced.
+
 **Never invent statuses.** The validator rejects anything not in the valid-values table above. `pending`, `done`, `blocked` are not valid.
 
 ---
@@ -209,9 +211,9 @@ Named artifacts: signal inventory, dimension working files, stream spec, collect
 
 **Every exit-criteria check and its result is written to the state file at the transition. Only then flip status to `complete` or `skipped`.**
 
-This is what makes skipped steps visible. A loosely-following agent that flips status without recording exit-checks leaves a state file that fails `--check-integrity`. That failure is the deterministic backstop.
+The validator enforces that `exit-checks` is a non-empty list of `{check, result, date}` entries when status is `complete`. A loosely-following agent that flips to `complete` without recording exit-checks leaves a state file that fails `--check-integrity`. That failure is the deterministic backstop.
 
-For `skipped` phases or `per-dimension` entries: record the `reason` field. The agent can offer to revisit skipped items on resume: "We skipped shared spend under Customer — want to come back to it?"
+For `skipped` phases or `per-dimension` entries: the validator does not require exit-checks. Record a `reason` field so the journey can offer to revisit the skipped item on resume: "We skipped shared spend under Customer — want to come back to it?"
 
 For `waiting-external` phases: record `verify-after` (a date the customer and agent agree on, usually 2–7 days for telemetry to accumulate). The session-start wait check uses this date. Do not flip status to `complete` until the wait check passes.
 
