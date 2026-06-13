@@ -75,6 +75,20 @@ curl -X POST -H "Authorization: Bearer $CZ_API_KEY" \
   https://api.cloudzero.com/v1/cost-formation/definitions
 ```
 
+## New to CloudZero? Use the Onboarding Journey
+
+If your costformation file is nearly empty, the agent offers a guided, resumable
+journey: it inventories the signals in your billing data (tags, account names,
+resource names, K8s labels), proposes a starter set of dimensions with evidence,
+maps which spend each dimension can't allocate, and walks you through splitting
+shared costs — by simple rules, business metrics, or usage telemetry (it
+generates the collector script and validates your payloads before you send).
+The journey ends, optionally, at unit cost.
+
+Say `onboard` or `suggest dimensions` to start; `continue onboarding` to resume.
+Progress persists in `my-org/onboarding-state.yaml`, so multi-day steps (like
+waiting for telemetry to land) pick up where you left off.
+
 ## How It Works
 
 The instruction file you copied in step 3 forces the agent to read `SKILL.md` before writing any CostFormation YAML. That file contains non-negotiable rules (source prefixes, performance constraints, allocation design) and a routing table that points to 9 corpus files covering syntax, conditions and transforms, telemetry, allocation design, and real-world examples.
@@ -104,6 +118,10 @@ python3 evals/run.py --list
 
 # Run tests (requires pytest)
 python3 -m pytest tests/ -v
+
+# Validate telemetry payloads before sending
+python3 validator/telemetry_check.py payload.json \
+  --costformation costformation.cz.yaml --target-dimension SpendCategory
 ```
 
 **Note:** Tests use `pytest`, not `unittest discover`. Install with `pip install pytest`.
