@@ -1,0 +1,38 @@
+Dimensions:
+  PlatformSpend:
+    Name: Platform Spend
+    Hide: true
+    Rules:
+      - Type: Group
+        Name: Team-Alpha
+        Conditions:
+          - Source: Tag:team
+            Equals: team-alpha
+      - Type: Group
+        Name: Team-Beta
+        Conditions:
+          - Source: Tag:team
+            Equals: team-beta
+      - Type: Group
+        Name: Shared Platform
+        Conditions:
+          - Source: Tag:cost-pool
+            Equals: platform
+
+  SeatsAllocation:
+    Name: Seats Allocation
+    Type: Allocation
+    Hide: true
+    AllocateByStreams:
+      Streams:
+        - seats_by_team
+
+  TeamPlatformCosts:
+    Name: Team Platform Costs
+    Child: Service
+    Sources:
+      - User:Defined:SeatsAllocation
+      - User:Defined:PlatformSpend
+    CoalesceSources: true
+    Rules:
+      - Type: GroupBy

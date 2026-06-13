@@ -1,0 +1,31 @@
+test_id: business-metric-split
+description: Split shared platform costs by a business metric (seats per team) via a monthly telemetry stream
+complexity: intermediate
+
+prompt: |
+  Onboarding phase 4, ladder rung 2. Split the "Shared Platform" pool of the
+  PlatformSpend dimension across teams proportionally to licensed seats per
+  team, sent monthly as telemetry stream "seats_by_team". Produce the full
+  3-step pipeline: target dimension, allocation dimension, combined view.
+
+context:
+  accounts: []
+  existing_dimensions: []
+  has_k8s: false
+
+golden_output: golden_outputs/business-metric-split.expected.yaml
+
+expected_validator:
+  status: pass
+  rule_ids: []
+
+assertions:
+  - type: dimension_exists
+    id: PlatformSpend
+  - type: dimension_exists
+    id: SeatsAllocation
+  - type: dimension_exists
+    id: TeamPlatformCosts
+  - type: validator_diagnostics
+    severity: ERROR
+    max: 0
