@@ -51,6 +51,10 @@ class OnboardingStateRule(Rule):
         diagnostics: List[Diagnostic] = []
         phases = data.get("phases") or {}
         if not isinstance(phases, dict):
+            diagnostics.append(Diagnostic(
+                severity=Severity.ERROR, rule_id="onboarding-parse-error",
+                message=f"{relname}: 'phases' must be a mapping of phase name "
+                        f"to entry, got {type(phases).__name__}", path=relname))
             phases = {}
 
         for phase_name, entry in phases.items():

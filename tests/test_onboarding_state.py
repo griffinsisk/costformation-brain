@@ -129,3 +129,9 @@ def test_unparseable_state_file_is_error(tmp_path):
     examples = make_repo(tmp_path, "phases: [unclosed")
     diags = OnboardingStateRule().check_integrity(examples)
     assert "onboarding-parse-error" in _ids(diags)
+
+
+def test_phases_as_list_is_error(tmp_path):
+    examples = make_repo(tmp_path, "phases:\n  - discover\n  - dimensions\n")
+    diags = OnboardingStateRule().check_integrity(examples)
+    assert "onboarding-parse-error" in _ids(diags)
