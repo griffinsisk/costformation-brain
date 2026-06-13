@@ -84,7 +84,7 @@ Query `Service: AmazonVPC` and related data transfer line items. These are
 frequently shared-infrastructure costs with no tagging at the source.
 
 Note: NAT and data transfer are often low-value per consumer but high-volume
-in row count. Flag for the expansion-factor advisory (see §4.4.3) before
+in row count. Flag for the expansion-factor advisory (Behavior 3 below) before
 recommending allocation.
 
 ### 5. Support charges and enterprise fees
@@ -244,7 +244,7 @@ the detection catalog already surfaced.
 ## Deliverables
 
 1. **The matrix** — bucket × dimension table with $/mo and cell values as
-   described in §4.3. Record at `shared-spend matrix` in the state file
+   described in the matrix section above. Record at `shared-spend matrix` in the state file
    under `matrix-updated: <ISO date>`.
 2. **Per-bucket classification** — splittable vs needs usage signal, one row
    per bucket.
