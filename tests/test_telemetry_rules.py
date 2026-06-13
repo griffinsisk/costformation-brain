@@ -125,8 +125,9 @@ def test_unknown_filter_prefix_is_warning():
 
 def test_filter_value_not_list_is_error():
     rec = dict(GOOD_RECORD, filter={"custom:Spend Category": "Shared"})
-    assert "telemetry-filter-cf-syntax" not in _ids(check_filter_keys(rec, 0))
-    assert any(d.rule_id == "telemetry-bad-filter" for d in check_filter_keys(rec, 0))
+    diags = check_filter_keys(rec, 0)
+    assert "telemetry-filter-cf-syntax" not in _ids(diags)
+    assert any(d.rule_id == "telemetry-bad-filter" for d in diags)
 
 
 # ---------------------------------------------------------------------------

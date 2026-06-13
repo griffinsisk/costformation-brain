@@ -80,6 +80,15 @@ def check_record_fields(record: dict, idx: int) -> List[Diagnostic]:
     return diags
 
 
+def _parse_ts(raw) -> Optional[datetime.datetime]:
+    """Return the parsed datetime (aware or naive) or None on unparseable input."""
+    normalized = raw[:-1] + "+00:00" if raw.endswith("Z") else raw
+    try:
+        return datetime.datetime.fromisoformat(normalized)
+    except (ValueError, TypeError, AttributeError):
+        return None
+
+
 def check_timestamp(record: dict, idx: int) -> List[Diagnostic]:
     """ISO 8601, UTC, hourly-aligned (minutes and seconds zero)."""
     raw = record.get("timestamp")
@@ -87,11 +96,8 @@ def check_timestamp(record: dict, idx: int) -> List[Diagnostic]:
         return [_diag(Severity.ERROR, "telemetry-timestamp-invalid",
                       f"timestamp must be an ISO 8601 string, got {raw!r}", idx)]
 
-    # datetime.fromisoformat doesn't accept a trailing Z before 3.11; normalize.
-    normalized = raw[:-1] + "+00:00" if raw.endswith("Z") else raw
-    try:
-        ts = datetime.datetime.fromisoformat(normalized)
-    except ValueError:
+    ts = _parse_ts(raw)
+    if ts is None:
         return [_diag(Severity.ERROR, "telemetry-timestamp-invalid",
                       f"timestamp '{raw}' is not valid ISO 8601", idx)]
 
@@ -101,8 +107,8 @@ def check_timestamp(record: dict, idx: int) -> List[Diagnostic]:
 
     if ts.minute != 0 or ts.second != 0 or ts.microsecond != 0:
         return [_diag(Severity.ERROR, "telemetry-timestamp-not-hourly",
-                      f"timestamp '{raw}' is not hourly-aligned — minutes and "
-                      f"seconds must be 00:00 (e.g. 2026-06-01T14:00:00Z)", idx)]
+                      f"timestamp '{raw}' must have minutes and seconds of 00:00 "
+                      f"(e.g. 2026-06-01T14:00:00Z)", idx)]
 
     return []
 
@@ -179,15 +185,6 @@ def check_element_names(records: list, element_names: Set[str]) -> List[Diagnost
     return diags
 
 
-def _parse_ts(raw):
-    normalized = raw[:-1] + "+00:00" if raw.endswith("Z") else raw
-    try:
-        ts = datetime.datetime.fromisoformat(normalized)
-    except (ValueError, TypeError, AttributeError):
-        return None
-    return ts if ts.tzinfo is not None else None
-
-
 def check_coverage(records: list) -> List[Diagnostic]:
     """WARN on backfill beyond 90 days and on gaps between windows.
 
@@ -203,7 +200,7 @@ def check_coverage(records: list) -> List[Diagnostic]:
     parsed = []
     for rec in records:
         ts = _parse_ts(rec.get("timestamp", ""))
-        if ts is not None:
+        if ts is not None and ts.tzinfo is not None:
             parsed.append((rec, ts))
 
     if not parsed:
@@ -229,6 +226,7 @@ def check_coverage(records: list) -> List[Diagnostic]:
         if step is None or len(stamps) < 2:
             continue
         lo, hi = min(stamps), max(stamps)
+        # O(range) set construction; acceptable for lint payloads (backfill > 90d warns separately).
         expected = set()
         cursor = lo
         while cursor <= hi:
