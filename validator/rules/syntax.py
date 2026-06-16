@@ -17,6 +17,36 @@ from validator.rules import Rule
 # that already-quoted values are ignored.
 _UNQUOTED_ACCOUNT_RE = re.compile(r'(?<![\'"])\b(\d{12})\b(?![\'"])')
 
+# A YAML list-item dash: a "-" preceded by start-of-line or whitespace.
+_BLOCK_LIST_DASH_RE = re.compile(r'(?:^|\s)-$')
+
+
+def _is_yaml_value_position(line_text: str, start: int, end: int) -> bool:
+    """Return True only when the 12-digit match is a bare YAML scalar *value*.
+
+    Account IDs that appear inside a string — e.g. a ``Name: Audit (058...)``
+    label or free-form prose — carry no integer-coercion risk and must not be
+    flagged.  A real risk exists only when the digits are the value of a
+    mapping key (``Equals: 058...``), a block list item (``- 058...``), or a
+    flow-sequence element (``[058..., 058...]``).
+    """
+    before = line_text[:start].rstrip()
+    after = line_text[end:].lstrip()
+
+    # Whatever follows must end the value: nothing, a comment, or flow-seq syntax.
+    if after and after[0] not in "#],":
+        return False
+
+    if before.endswith(":"):          # mapping value:  Equals: <id>
+        return True
+    if _BLOCK_LIST_DASH_RE.search(before):  # block list item:  - <id>
+        return True
+    if before.endswith("["):          # first flow-seq element:  [<id>, ...]
+        return True
+    if before.endswith(",") and "[" in before:  # later flow-seq element
+        return True
+    return False
+
 
 class MissingTypeRule(Rule):
     """ERROR missing-type — every rule in a dimension must declare a Type."""
@@ -66,6 +96,8 @@ class UnquotedAccountIdRule(Rule):
                 continue
 
             for match in _UNQUOTED_ACCOUNT_RE.finditer(line_text):
+                if not _is_yaml_value_position(line_text, match.start(), match.end()):
+                    continue
                 account_id = match.group(1)
                 diagnostics.append(
                     Diagnostic(
