@@ -12,9 +12,9 @@ Dimensions:
     DefaultValue: Other                   # Omit unless you need a named bucket — defaults to "Not in Dimension"
     Child: Service                        # Next drill-down dimension in Explorer (optional)
     Override: CZ:Defined:<DimensionId>    # Replace a built-in CZ dimension (optional)
-    Source: Account                       # Default source inherited by all rules (optional)
+    Source: Account                       # Default source inherited by Group rule conditions (optional — GroupBy rules must declare their own Source/Sources)
     CoalesceSources: false                # Use first non-null source (optional)
-    Transforms:                           # Default transforms inherited by all rules (optional)
+    Transforms:                           # Default transforms inherited by Group rules (optional)
       - Type: Lower
     Rules:
       - Type: Group                       # Required: Group, GroupBy, or Metadata

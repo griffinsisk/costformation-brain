@@ -119,11 +119,11 @@ Dimensions:
   # GroupBy passes through all element names from any source.
   CustomerCosts:
     Name: Customer Costs
-    Sources:
-      - User:Defined:ComputeAllocation
-      - User:Defined:StorageAllocation
-      - User:Defined:ComputeSpendPool
-      - User:Defined:StorageSpendPool
-    CoalesceSources: true
     Rules:
       - Type: GroupBy
+        Sources:
+          - User:Defined:ComputeAllocation
+          - User:Defined:StorageAllocation
+          - User:Defined:ComputeSpendPool
+          - User:Defined:StorageSpendPool
+        CoalesceSources: true

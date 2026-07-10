@@ -59,4 +59,14 @@ Dimensions:
         Conditions:
           - Equals: unknown
       # GroupBy passes through all other coalesced values as-is.
+      # The sources repeat here deliberately: GroupBy rules must declare
+      # Source/Sources on the rule — the dimension-level Sources above only
+      # feed the Group rule's conditions.
       - Type: GroupBy
+        Sources:
+          - User:Defined:TelemetryAllocation
+          - User:Defined:RulesAllocation
+          - User:Defined:TagCostCenter
+          - User:Defined:AccountCostCenter
+          - User:Defined:K8sCostCenter
+        CoalesceSources: true

@@ -21,6 +21,8 @@
 #   - No DefaultValue on hidden dimensions used as fallback sources
 #   - Hide: true keeps helper out of Explorer but available to other dims
 # anti_patterns:
+#   - Writing a bare "- Type: GroupBy" that relies on dimension-level
+#     Sources — GroupBy rules must declare Source/Sources on the rule itself
 #   - Duplicating the account list in every cost center rule instead of
 #     referencing a hidden helper dimension
 #   - Setting DefaultValue on AccountToCostCenter — it forces all line
@@ -61,15 +63,18 @@ Dimensions:
 
   # Visible dimension: CoalesceSources prefers the tag, falls back to the
   # account mapping, then to K8s label as a tertiary signal.
+  # Note: Sources/Transforms/CoalesceSources live ON the GroupBy rule —
+  # GroupBy rules must declare their own sources; dimension-level source
+  # promotion applies to Group rules only.
   CostCenter:
     Name: Cost Center
     Child: Service
-    CoalesceSources: true
-    Sources:
-      - Tag:cost-center
-      - User:Defined:AccountToCostCenter
-      - K8s:Label:cost-center
-    Transforms:
-      - Type: Upper
     Rules:
       - Type: GroupBy
+        Sources:
+          - Tag:cost-center
+          - User:Defined:AccountToCostCenter
+          - K8s:Label:cost-center
+        Transforms:
+          - Type: Upper
+        CoalesceSources: true

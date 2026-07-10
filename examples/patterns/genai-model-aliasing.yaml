@@ -141,4 +141,9 @@ Dimensions:
 
       # ── Catch-all: GroupBy passthrough for any unrecognized model ────────
       # New model names pass through as-is so spend is never lost.
+      # Source/Transforms repeat here deliberately: GroupBy rules must declare
+      # their own Source — the dimension-level Source only feeds Group rules.
       - Type: GroupBy
+        Source: CZ:Defined:ResourceSummaryDisplay
+        Transforms:
+          - Type: Lower

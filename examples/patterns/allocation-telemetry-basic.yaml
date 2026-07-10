@@ -103,9 +103,9 @@ Dimensions:
   TeamCosts:
     Name: Team Costs
     Child: Service
-    Sources:
-      - User:Defined:SharedAllocation
-      - User:Defined:SpendCategory
-    CoalesceSources: true
     Rules:
       - Type: GroupBy
+        Sources:
+          - User:Defined:SharedAllocation
+          - User:Defined:SpendCategory
+        CoalesceSources: true

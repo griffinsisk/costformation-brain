@@ -1,0 +1,25 @@
+# Fixture: GroupBy rules relying on dimension-level source promotion.
+# Both dimensions are invalid — a GroupBy rule must declare Source/Sources
+# on the rule itself.
+Dimensions:
+  Team:
+    Name: Team
+    Child: Service
+    Source: Tag:team
+    Transforms:
+      - Type: Lower
+    Rules:
+      - Type: GroupBy
+
+  CostCenter:
+    Name: Cost Center
+    Sources:
+      - Tag:cost-center
+      - Tag:costcenter
+    CoalesceSources: true
+    Rules:
+      - Type: Group
+        Name: Research
+        Conditions:
+          - Equals: rnd
+      - Type: GroupBy

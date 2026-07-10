@@ -40,11 +40,18 @@ from validator.rules.performance import (
     VisibleNoChildRule,
 )
 from validator.rules.sources import SourcePrefixRule, UnresolvedUserDefinedRule
-from validator.rules.syntax import MissingTypeRule, UnquotedAccountIdRule
+from validator.rules.syntax import (
+    GroupByMissingSourceRule,
+    LogicalOperatorListRule,
+    MissingTypeRule,
+    UnquotedAccountIdRule,
+)
 
 # All non-integrity rules run on every file.
 ALL_RULES = [
     MissingTypeRule(),
+    GroupByMissingSourceRule(),
+    LogicalOperatorListRule(),
     UnquotedAccountIdRule(),
     SourcePrefixRule(),
     UnresolvedUserDefinedRule(),

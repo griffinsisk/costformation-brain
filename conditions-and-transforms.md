@@ -182,6 +182,24 @@ All conditions are flat — `Source` and the operator are siblings, not nested u
               BeginsWith: prod-atlas
 ```
 
+### And/Or/Not Always Contain a LIST
+
+The value of `And`, `Or`, and `Not` is a **list of conditions** — each item starts with `- `. A bare mapping under the operator is invalid, and the failure mode is nasty: if the malformed clause is rejected or dropped at publish, the surrounding logic silently degrades (e.g. an `And` guard losing its `Not` exclusion matches far more spend than intended).
+
+```yaml
+# ❌ Incorrect — bare mapping under Not
+- Not:
+    Source: User:Defined:Customer
+    Equals: "Other"
+
+# ✅ Correct — list of conditions under Not
+- Not:
+    - Source: User:Defined:Customer
+      Equals: "Other"
+```
+
+`Not` evaluates its list as a logical Or, then negates the result.
+
 ## Multiple Conditions Under a Rule (Implicit OR)
 
 Multiple top-level conditions under a single rule are OR'd — any match assigns the charge to that rule's element:
@@ -370,6 +388,30 @@ Sources:
 
 When more than 50% of rules in a dimension share the same source, promote it to the dimension header instead of repeating it on every condition.
 
+**This shorthand applies to `Group` rule conditions only.** A `Type: GroupBy` rule must always declare its own `Source`/`Sources` (plus `Transforms`/`CoalesceSources` when used) on the rule itself — a bare `- Type: GroupBy` relying on the dimension header is invalid, even when the dimension's only rule is the GroupBy.
+
+```yaml
+# ❌ Incorrect — bare GroupBy relying on dimension-level source
+- Id: team
+  Name: Team
+  Source: Tag:team
+  Transforms:
+    - Type: Lower
+  Rules:
+    - Type: GroupBy
+
+# ✅ Correct — GroupBy carries its own source and transforms
+- Id: team
+  Name: Team
+  Rules:
+    - Type: GroupBy
+      Source: Tag:team
+      Transforms:
+        - Type: Lower
+```
+
+In mixed dimensions (Group rules + a GroupBy passthrough), keep the dimension-level source for the Group rules and repeat it explicitly on the GroupBy rule.
+
 ```yaml
 # ✅ Correct — source declared once at dimension level
 - Id: team
@@ -483,7 +525,7 @@ Rules:
       - Equals: staging
 ```
 
-**Quote names containing YAML special characters** (`:`, `#`, `{`, `}`, `[`, `]`, `*`, `&`, `!`, `|`, `>`, `'`, `"`, `%`, `@`, `` ` ``).
+**Quote names — and string values that reference them — containing YAML special characters** (`:`, `#`, `{`, `}`, `[`, `]`, `*`, `&`, `!`, `|`, `>`, `'`, `"`, `%`, `@`, `` ` ``). This applies to `Name:` and equally to condition values that reference such an element, e.g. `Equals: "Other (Internal & Unclassified)"`.
 
 ```yaml
 # ✅ Correct

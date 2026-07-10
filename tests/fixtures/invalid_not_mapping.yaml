@@ -1,0 +1,20 @@
+# Fixture: And/Or/Not written as bare mappings instead of lists.
+# Both operators below are invalid — logical operators evaluate a LIST of
+# conditions; a bare mapping may be dropped or rejected at publish.
+Dimensions:
+  Environment:
+    Name: Environment
+    Child: Service
+    Rules:
+      - Type: Group
+        Name: Non-Production
+        Conditions:
+          - Not:
+              Source: Tag:env
+              Equals: prod
+      - Type: Group
+        Name: Tagged Compute
+        Conditions:
+          - And:
+              Source: Service
+              Equals: AmazonEC2

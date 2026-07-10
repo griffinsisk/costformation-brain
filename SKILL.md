@@ -61,6 +61,7 @@ ALWAYS:
 - Prefer `CZ:Defined:ResourceSummaryDisplay` over `ResourceId` for resource matching
 - Use `Equals`, `BeginsWith`, or `Contains` before reaching for `Matches` (regex)
 - Every rule must have `Type: Group`, `Type: GroupBy`, or `Type: Metadata` — omitting Type is invalid
+- Declare `Source`/`Sources` (plus `Transforms`/`CoalesceSources` when used) directly on every `GroupBy` rule — dimension-level source promotion applies to `Group` rules only
 - Add `Lower` transforms when matching user-defined tags
 - Scope `SpendToAllocate` as narrowly as possible in Allocation Dimensions
 - Use a common hidden "Spend to Allocate" dimension when multiple allocation dimensions exist — prevents overlap
@@ -72,6 +73,8 @@ NEVER:
 - Write `Source: CZ:Defined:Account` or similar — core billing sources (`Account`, `Service`, `Region`, `Resource`, etc.) are bare, not prefixed with `CZ:Defined:`
 - Write bare `Source: Environment` or `Source: MyDimension` without a prefix — custom and CZ-defined dimensions require `User:Defined:` or `CZ:Defined:` prefixes
 - Use raw `ResourceId` as a match source — high cardinality, expensive in Snowflake
+- Write a bare `- Type: GroupBy` that relies on dimension-level `Source`/`Sources` — the group-by source must live on the rule itself
+- Write a bare mapping under `And`/`Or`/`Not` — logical operators take a **list** of conditions (each item starts with `- `); a malformed clause can be silently dropped at publish, degrading the surrounding logic
 - Layer allocation dimensions (allocation referencing another allocation's output) — causes exponential row expansion
 - Create overlapping `SpendToAllocate` conditions across multiple allocation dimensions
 - Send telemetry with non-UTC or non-hourly-aligned timestamps
