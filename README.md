@@ -142,6 +142,13 @@ python3 validator/lint.py examples/patterns/*.yaml
 # Validate the complete proposal against its recorded baseline
 python3 costformation-brain/validator/workspace_check.py .
 
+# Validate distilled evidence and optional MCP capability manifests
+python3 validator/evidence_check.py evidence.yaml
+python3 validator/capability_check.py .costformation/capabilities.yaml
+
+# Run capability-classification golden cases
+python3 evals/harness_run.py
+
 # Integrity checks (index consistency, anonymization scan)
 python3 validator/lint.py --check-integrity
 

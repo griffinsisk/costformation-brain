@@ -1,0 +1,14 @@
+test_id: ambiguous-mixed-tool
+description: Prevent autonomous selection when one tool can both inspect and mutate resources.
+input:
+  server: example-cloud-control
+  tool_name: inspect_or_update_resource
+  tool_description: Read resource metadata and optionally update labels when update values are supplied.
+golden_output: harness_golden/ambiguous-mixed-tool.expected.yaml
+assertions:
+  - path: capabilities.0.categories
+    contains: resource_metadata
+  - path: capabilities.0.access
+    equals: ambiguous
+  - path: capabilities.0.auto_select
+    equals: false
