@@ -1,0 +1,37 @@
+version: 1
+
+categories:
+  - cloud_inventory
+  - resource_metadata
+  - metrics
+  - usage_volume
+  - observability
+  - business_context
+  - meeting_context
+  - crm
+  - documentation
+
+access_values:
+  - read-only
+  - write-capable
+  - ambiguous
+
+status_values:
+  - available
+  - unavailable
+  - authentication-required
+
+secret_fields:
+  - credentials
+  - password
+  - access_token
+  - refresh_token
+  - api_key
+
+policy:
+  read-only:
+    auto_select_allowed: true
+  write-capable:
+    auto_select_allowed: false
+  ambiguous:
+    auto_select_allowed: false
