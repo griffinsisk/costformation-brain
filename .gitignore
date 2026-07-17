@@ -1,5 +1,6 @@
 .DS_Store
 .claude/
+.worktrees/
 reference/
 docs/
 __pycache__/
