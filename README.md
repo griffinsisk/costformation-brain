@@ -115,6 +115,9 @@ The repo includes a CostFormation linter and eval framework. Requires `ruamel.ya
 python3 validator/lint.py costformation.cz.yaml
 python3 validator/lint.py examples/patterns/*.yaml
 
+# Validate the complete proposal against its recorded baseline
+python3 costformation-brain/validator/workspace_check.py .
+
 # Integrity checks (index consistency, anonymization scan)
 python3 validator/lint.py --check-integrity
 

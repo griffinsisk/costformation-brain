@@ -1,0 +1,17 @@
+Dimensions:
+  Environment:
+    Name: Environment
+    Hide: true
+    Source: Tag:environment
+    Transforms:
+      - Type: Lower
+    Rules:
+      - Type: GroupBy
+  Team:
+    Name: Team
+    Hide: true
+    Source: Tag:team
+    Transforms:
+      - Type: Lower
+    Rules:
+      - Type: GroupBy
