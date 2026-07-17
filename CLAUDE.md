@@ -86,38 +86,20 @@ Present what you built with a brief explanation of what you found in the data. T
 
 When the user provides org context during conversation — team-to-account mappings, CSVs, org charts, business rules, constraints, or goals — **append it to `costformation-brain/my-org/context.md`** under the relevant section heading. Do not lose information between sessions. Never replace existing content — only add to it.
 
-## Working Files — Never Edit Production In Place
+## Two-File CostFormation Workflow
 
-**Never modify the production costformation file directly.** Always use working files for version control and safe review.
+Always read `costformation-brain/workspace/two-file-workflow.md` before changing
+CostFormation.
 
-### Before any edit:
-1. **Back up the current production file** as a timestamped copy: `<filename>.<YYYY-MM-DD>.backup.yaml`
-2. **Create a change sub-folder** for the work:
-   ```
-   <change-name>/
-     <dimension-name>_<YYYY-MM-DD>.yaml       # new/modified dimension YAML — clean, copy-paste ready
-     <dimension-name>_<YYYY-MM-DD>_comments.md # what it does, why, next steps, paste location
-   ```
-
-### The dimension file:
-- Contains ONLY the new or modified dimension definition
-- Clean and copy-paste ready — the user pastes it into the production file
-- No surrounding context or other dimensions
-
-### The comments file:
-- What the dimension does (plain English)
-- Why this change was requested
-- Exact paste location in the production file (line number or anchor context)
-- Dependencies (streams to create, other dimensions that must exist first)
-- Testing recommendations
-
-### After the user applies the change:
-- Record what was done in `costformation-brain/my-org/context.md`
-- Note any follow-up items (stream creation, testing, etc.)
-
-**If the user explicitly asks you to edit the production file directly**, make the timestamped backup first. No exceptions.
+- Never edit `costformation.cz.yaml`; it is the latest downloaded baseline.
+- Make changes only in the complete `costformation.proposed.cz.yaml` file.
+- If an existing proposal differs from the baseline, ask whether to retain,
+  replace, or rebase it. Never overwrite it silently.
+- Validate with `python3 costformation-brain/validator/workspace_check.py .`
+  before handoff.
+- Never publish; the user publishes through the CloudZero VS Code Toolkit.
 
 ## NEVER
 
 - Write bare `Source: <DimensionId>` for custom or CZ dimensions without a prefix — `User:Defined:` and `CZ:Defined:` prefixes are required. Core billing sources (`Account`, `Service`, `Region`, etc.) are bare
-- Modify production costformation files without creating a timestamped backup first
+- Edit `costformation.cz.yaml` or publish CostFormation on the user's behalf

@@ -273,7 +273,12 @@ The state file holds mechanics. `context.md` holds knowledge. Never conflate the
 
 **Before any phase, also read the phase doc itself in full.** The routing table lists corpus prerequisites; the phase doc contains the behavioral contract for that phase.
 
-For phases that generate CostFormation YAML (2, 4, 5): follow the full pre-generation checklist from SKILL.md — including MCP query, my-org/ freshness check, performance-rules.md, allocation-design.md (for allocation phases), examples/index.yaml pattern check, and the working-file workflow (timestamped backup + change sub-folder). Validate with `lint.py` before presenting YAML; fix all ERRORs.
+For phases that generate CostFormation YAML (2, 4, 5): follow the full
+pre-generation checklist from SKILL.md — including MCP query, my-org/ freshness
+check, performance-rules.md, allocation-design.md (for allocation phases), and
+the examples/index.yaml pattern check. Build the complete change in
+`costformation.proposed.cz.yaml` from the immutable `costformation.cz.yaml`
+baseline and validate it with `validator/workspace_check.py`; fix all ERRORs.
 
 ---
 

@@ -102,7 +102,11 @@ Ask one question at a time. Offer concrete candidates; never ask open-ended
 
 ## Build Step
 
-Selected dimensions go through the existing SKILL.md write flow unchanged — pre-generation checklist, timestamped backup + change sub-folder, validator, present. Record the working-folder paths under `artifacts` in the state file.
+Build the complete change in `costformation.proposed.cz.yaml` using the latest
+`costformation.cz.yaml` as its immutable baseline. Validate the complete
+proposal with `validator/workspace_check.py`; do not create dimension snippets,
+backup files, or per-change comments files. Record the proposal path under
+`artifacts` in the state file.
 
 ---
 
@@ -112,8 +116,9 @@ Selected dimensions go through the existing SKILL.md write flow unchanged — pr
   evidence, coverage, pattern, and what cannot be inferred.
 - **Gap list** (in conversation) — catalog concepts with no signal, each with a
   one-line route (phase 4 telemetry, or skip).
-- **Working files** for each selected dimension — clean YAML + comments file in
-  a timestamped sub-folder. Paths recorded in the state file.
+- **Complete proposal** — `costformation.proposed.cz.yaml` contains every
+  selected dimension plus the unchanged baseline definition. Its path is
+  recorded in the state file.
 - **Updated `my-org/context.md`** — append naming decisions, element mappings,
   and any business-rule clarifications the customer provided.
 
@@ -128,8 +133,7 @@ phases:
   dimensions:
     status: complete
     artifacts:
-      - environment-dimension_2026-06-13/
-      - team-dimension_2026-06-13/
+      - costformation.proposed.cz.yaml
     exit-checks:
       - check: ranked proposal presented and candidates selected
         result: pass
