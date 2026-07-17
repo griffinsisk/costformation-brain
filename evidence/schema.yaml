@@ -1,0 +1,35 @@
+version: 1
+required_fields:
+  - evidence_id
+  - pov_id
+  - source_system
+  - source_record_id
+  - source_url
+  - captured_at
+  - speaker
+  - evidence_type
+  - subject
+  - statement
+  - status
+  - confidence
+  - customer_scope
+  - promotion_status
+statuses: [observed, customer-confirmed, inferred, conflicting, stale]
+confidence_values: [confirmed, high, medium, low]
+evidence_types:
+  - customer_statement
+  - customer_decision
+  - system_observation
+  - implementation_fact
+  - business_context
+  - agent_inference
+customer_scopes: [customer-only]
+promotion_statuses: [unreviewed, rejected, approved-anonymized]
+prohibited_fields:
+  - transcript
+  - raw_transcript
+  - raw_response
+  - credentials
+  - access_token
+  - refresh_token
+  - api_key
