@@ -14,6 +14,13 @@ ONBOARDING_FILES = [
     REPO_ROOT / "onboarding" / "phase-2-dimensions.md",
     REPO_ROOT / "onboarding" / "phase-4-allocation.md",
 ]
+INTERNAL_NAMES = ("Salesforce", "Granola", "Sybill")
+CUSTOMER_RUNTIME_FILES = INSTRUCTION_FILES + [
+    REPO_ROOT / "profiles" / "customer.md",
+    REPO_ROOT / "connectors" / "discovery.md",
+    REPO_ROOT / "connectors" / "query-strategy.md",
+    REPO_ROOT / "README.md",
+]
 FORBIDDEN_WORKFLOW_PHRASES = [
     "timestamped backup",
     "timestamped copy",
@@ -41,3 +48,15 @@ def test_production_baseline_is_declared_immutable():
     for path in INSTRUCTION_FILES:
         text = path.read_text()
         assert "Never edit `costformation.cz.yaml`" in text, path
+
+
+def test_customer_runtime_routes_to_customer_profile():
+    for path in INSTRUCTION_FILES:
+        assert "profiles/customer.md" in path.read_text(), path
+
+
+def test_customer_runtime_excludes_internal_connector_names():
+    for path in CUSTOMER_RUNTIME_FILES:
+        text = path.read_text()
+        for name in INTERNAL_NAMES:
+            assert name not in text, f"{path}: {name}"

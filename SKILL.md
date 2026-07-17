@@ -25,6 +25,10 @@ Consult the relevant file based on what you're working on:
 | Finding a pattern example to start from | `examples/index.yaml` → `examples/patterns/` |
 | Customer org context (accounts, tags, goals) | `my-org/index.yaml` → `my-org/` |
 | Onboarding journey (new customer, suggest dimensions, shared spend, telemetry, unit cost) | `onboarding/journey.md` → phase docs |
+| Customer build harness | `profiles/customer.md` |
+| Optional MCP discovery | `connectors/discovery.md` + `connectors/query-strategy.md` |
+| Evidence authority | `evidence/authority.md` |
+| Baseline/proposal workflow | `workspace/two-file-workflow.md` |
 
 ## Common Tasks
 
@@ -38,6 +42,10 @@ Consult the relevant file based on what you're working on:
 **Before any CostFormation work:**
 Customer-specific state lives at the workspace root, outside this repository.
 Never write customer data inside `costformation-brain/`.
+
+For the customer-safe build workflow, read
+`costformation-brain/profiles/customer.md`. It routes optional MCP discovery,
+evidence reconciliation, the complete proposal build, and validation.
 
 0. If the costformation file has fewer than 3 custom dimensions, or my-org/onboarding-state.yaml has a waiting-external entry past its verify-after date, read onboarding/journey.md and follow its entry rules.
 1. **Always query the CloudZero MCP** (if connected) — even if you have a CSV, an existing file, or prior context. The MCP is a cross-reference, not a fallback.

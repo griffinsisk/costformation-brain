@@ -80,6 +80,30 @@ curl -X POST -H "Authorization: Bearer $CZ_API_KEY" \
   https://api.cloudzero.com/v1/cost-formation/definitions
 ```
 
+## Build Harness
+
+The agent works from a two-file pair in your workspace: `costformation.cz.yaml`
+is the latest baseline downloaded from CloudZero and is never edited, and
+`costformation.proposed.cz.yaml` is the complete proposed definition the agent
+builds and updates.
+
+At the start of a session, the agent inventories whatever MCP servers you have
+connected and classifies them by capability (cloud inventory, metrics,
+observability, business context, and so on) — there is no required vendor list.
+Only read-only capabilities are used automatically; anything write-capable or
+unclear requires your explicit approval per action.
+
+Evidence gathered from these sources is distilled into small local records with
+provenance under your customer workspace — never raw transcripts or full tool
+responses, and never inside this repository.
+
+Before handoff, the agent validates the workspace with
+`python3 costformation-brain/validator/workspace_check.py .` and fixes all
+errors. The agent never publishes: you review the proposal and publish it
+yourself through the CloudZero VS Code Toolkit.
+
+See `profiles/customer.md` for the full workflow.
+
 ## New to CloudZero? Use the Onboarding Journey
 
 If your costformation file is nearly empty, the agent offers a guided, resumable

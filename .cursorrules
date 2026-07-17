@@ -83,6 +83,10 @@ repository.
 Always read `costformation-brain/workspace/two-file-workflow.md` before changing
 CostFormation.
 
+For the customer-safe build workflow, read
+`costformation-brain/profiles/customer.md`. It routes optional MCP discovery,
+evidence reconciliation, the complete proposal build, and validation.
+
 - Never edit `costformation.cz.yaml`; it is the latest downloaded baseline.
 - Make changes only in the complete `costformation.proposed.cz.yaml` file.
 - If an existing proposal differs from the baseline, ask whether to retain,
