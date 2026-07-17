@@ -11,7 +11,12 @@ Works with Claude Code, Cursor, Copilot, Codex, Windsurf — any IDE or CLI with
 ```bash
 cd your-project
 git clone https://github.com/griffinsisk/costformation-brain.git
+python3 costformation-brain/workspace/init.py .
 ```
+
+The initializer creates customer-specific `my-org/`, `context/`, and
+`.costformation/` state beside the clone. Customer data never lives inside the
+`costformation-brain` Git repository.
 
 ### 2. Pull your CostFormation file
 
@@ -71,7 +76,7 @@ Any business context you provide in conversation — team-to-account mappings, C
 ```bash
 curl -X POST -H "Authorization: Bearer $CZ_API_KEY" \
   -H "Content-Type: application/yaml" \
-  --data-binary @costformation.cz.yaml \
+  --data-binary @costformation.proposed.cz.yaml \
   https://api.cloudzero.com/v1/cost-formation/definitions
 ```
 
@@ -95,7 +100,9 @@ The instruction file you copied in step 3 forces the agent to read `SKILL.md` be
 
 The `examples/` directory contains 20 structured CostFormation patterns — from basic account mappings to advanced allocation chains — each with metadata that helps the agent select the right starting point. The agent checks `examples/index.yaml` before writing any dimension from scratch.
 
-The `my-org/` directory stores your org-specific context. It's auto-populated from your costformation file and the CloudZero MCP — you don't need to fill it in manually. The agent refreshes it whenever you pull a new costformation version.
+The workspace-root `my-org/` directory stores your org-specific context. It is
+outside the cloned repository, auto-populated from your CostFormation file and
+the CloudZero MCP, and refreshed whenever you pull a new CostFormation version.
 
 Without the instruction file, agents confidently generate wrong CostFormation syntax from general knowledge. The output looks plausible but uses incorrect structure. The brain fixes this.
 

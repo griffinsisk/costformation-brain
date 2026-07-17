@@ -2,6 +2,10 @@
 
 This document is an **instruction document for agents**. Follow it the same way you follow SKILL.md: imperatively, rule-first. The audience is an AI agent orchestrating the journey; a technical customer may read along.
 
+All customer state paths (`my-org/`, `context/`, `.costformation/`, and the
+CostFormation files) are relative to the customer workspace root and remain
+outside the `costformation-brain` repository.
+
 ---
 
 ## 1. What This Is

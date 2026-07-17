@@ -36,6 +36,9 @@ Consult the relevant file based on what you're working on:
 | Review/debug existing dimension | `my-org/index.yaml`, `my-org/context.md`, `my-org/`, `performance-rules.md`, `sources.md`, `conditions-and-transforms.md`, `dimension-types.md` |
 
 **Before any CostFormation work:**
+Customer-specific state lives at the workspace root, outside this repository.
+Never write customer data inside `costformation-brain/`.
+
 0. If the costformation file has fewer than 3 custom dimensions, or my-org/onboarding-state.yaml has a waiting-external entry past its verify-after date, read onboarding/journey.md and follow its entry rules.
 1. **Always query the CloudZero MCP** (if connected) — even if you have a CSV, an existing file, or prior context. The MCP is a cross-reference, not a fallback.
 2. Check if `my-org/` needs populating or refreshing (see agent instruction file for freshness rules).
