@@ -24,6 +24,11 @@ Consult the relevant file based on what you're working on:
 | Real worked examples | `examples.md` |
 | Finding a pattern example to start from | `examples/index.yaml` → `examples/patterns/` |
 | Customer org context (accounts, tags, goals) | `my-org/index.yaml` → `my-org/` |
+| Onboarding journey (new customer, suggest dimensions, shared spend, telemetry, unit cost) | `onboarding/journey.md` → phase docs |
+| Customer build harness | `profiles/customer.md` |
+| Optional MCP discovery | `connectors/discovery.md` + `connectors/query-strategy.md` |
+| Evidence authority | `evidence/authority.md` |
+| Baseline/proposal workflow | `workspace/two-file-workflow.md` |
 
 ## Common Tasks
 
@@ -35,6 +40,14 @@ Consult the relevant file based on what you're working on:
 | Review/debug existing dimension | `my-org/index.yaml`, `my-org/context.md`, `my-org/`, `performance-rules.md`, `sources.md`, `conditions-and-transforms.md`, `dimension-types.md` |
 
 **Before any CostFormation work:**
+Customer-specific state lives at the workspace root, outside this repository.
+Never write customer data inside `costformation-brain/`.
+
+For the customer-safe build workflow, read
+`costformation-brain/profiles/customer.md`. It routes optional MCP discovery,
+evidence reconciliation, the complete proposal build, and validation.
+
+0. If the costformation file has fewer than 3 custom dimensions, or my-org/onboarding-state.yaml has a waiting-external entry past its verify-after date, read onboarding/journey.md and follow its entry rules.
 1. **Always query the CloudZero MCP** (if connected) — even if you have a CSV, an existing file, or prior context. The MCP is a cross-reference, not a fallback.
 2. Check if `my-org/` needs populating or refreshing (see agent instruction file for freshness rules).
 3. Read `my-org/index.yaml` first for a compact summary, then `my-org/context.md` (always). Load full detail files as needed.
@@ -42,13 +55,17 @@ Consult the relevant file based on what you're working on:
 5. Read `allocation-design.md` before writing any Allocation Dimension.
 6. Check `examples/index.yaml` for a matching pattern before writing a dimension from scratch.
 
-**Before editing any costformation file:**
-7. Back up the production file as `<filename>.<YYYY-MM-DD>.backup.yaml`. Create a change sub-folder with clean dimension YAML + comments file. See agent instruction file for the full working-file workflow.
+**Before changing any costformation file:**
+7. Read `workspace/two-file-workflow.md`. Never edit `costformation.cz.yaml`;
+   create or update the complete
+   `costformation.proposed.cz.yaml` proposal and preserve any divergent
+   existing proposal until the user chooses retain, replace, or rebase.
 
 **After generating or modifying CostFormation YAML:**
-6. Run `python3 costformation-brain/validator/lint.py <file>` on the output.
-7. Fix all ERRORs before presenting the YAML to the customer. Do not show YAML that has validator errors.
-8. If WARNINGs remain, briefly summarize them when presenting the output (e.g., "The validator flagged 2 warnings: visible dimension X has no Child drill-down, and Y has DefaultValue without an intent comment."). Do not block on warnings for customer-facing work.
+8. Run `python3 costformation-brain/validator/workspace_check.py .`.
+9. Fix all ERRORs before presenting the proposal. Do not show a proposal with
+   validator errors as publish-ready.
+10. Briefly summarize the baseline-to-proposal diff and remaining WARNINGs.
 
 **When the user provides business context** (team mappings, CSVs, org charts, goals, constraints), persist it to `my-org/context.md` so it survives across sessions.
 

@@ -1,0 +1,18 @@
+{
+  "records": [
+    {
+      "timestamp": "2026-06-01T14:00:00Z",
+      "granularity": "HOURLY",
+      "filter": {"custom:Spend Category": ["Shared"]},
+      "element_name": "Team-Alpha",
+      "value": "75000"
+    },
+    {
+      "timestamp": "2026-06-01T14:00:00Z",
+      "granularity": "HOURLY",
+      "filter": {"custom:Spend Category": ["Shared"]},
+      "element_name": "Team-Beta",
+      "value": "25000"
+    }
+  ]
+}

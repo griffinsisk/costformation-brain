@@ -11,7 +11,12 @@ Works with Claude Code, Cursor, Copilot, Codex, Windsurf — any IDE or CLI with
 ```bash
 cd your-project
 git clone https://github.com/griffinsisk/costformation-brain.git
+python3 costformation-brain/workspace/init.py .
 ```
+
+The initializer creates customer-specific `my-org/`, `context/`, and
+`.costformation/` state beside the clone. Customer data never lives inside the
+`costformation-brain` Git repository.
 
 ### 2. Pull your CostFormation file
 
@@ -71,9 +76,47 @@ Any business context you provide in conversation — team-to-account mappings, C
 ```bash
 curl -X POST -H "Authorization: Bearer $CZ_API_KEY" \
   -H "Content-Type: application/yaml" \
-  --data-binary @costformation.cz.yaml \
+  --data-binary @costformation.proposed.cz.yaml \
   https://api.cloudzero.com/v1/cost-formation/definitions
 ```
+
+## Build Harness
+
+The agent works from a two-file pair in your workspace: `costformation.cz.yaml`
+is the latest baseline downloaded from CloudZero and is never edited, and
+`costformation.proposed.cz.yaml` is the complete proposed definition the agent
+builds and updates.
+
+At the start of a session, the agent inventories whatever MCP servers you have
+connected and classifies them by capability (cloud inventory, metrics,
+observability, business context, and so on) — there is no required vendor list.
+Only read-only capabilities are used automatically; anything write-capable or
+unclear requires your explicit approval per action.
+
+Evidence gathered from these sources is distilled into small local records with
+provenance under your customer workspace — never raw transcripts or full tool
+responses, and never inside this repository.
+
+Before handoff, the agent validates the workspace with
+`python3 costformation-brain/validator/workspace_check.py .` and fixes all
+errors. The agent never publishes: you review the proposal and publish it
+yourself through the CloudZero VS Code Toolkit.
+
+See `profiles/customer.md` for the full workflow.
+
+## New to CloudZero? Use the Onboarding Journey
+
+If your costformation file is nearly empty, the agent offers a guided, resumable
+journey: it inventories the signals in your billing data (tags, account names,
+resource names, K8s labels), proposes a starter set of dimensions with evidence,
+maps which spend each dimension can't allocate, and walks you through splitting
+shared costs — by simple rules, business metrics, or usage telemetry (it
+generates the collector script and validates your payloads before you send).
+The journey ends, optionally, at unit cost.
+
+Say `onboard` or `suggest dimensions` to start; `continue onboarding` to resume.
+Progress persists in `my-org/onboarding-state.yaml`, so multi-day steps (like
+waiting for telemetry to land) pick up where you left off.
 
 ## How It Works
 
@@ -81,7 +124,9 @@ The instruction file you copied in step 3 forces the agent to read `SKILL.md` be
 
 The `examples/` directory contains 20 structured CostFormation patterns — from basic account mappings to advanced allocation chains — each with metadata that helps the agent select the right starting point. The agent checks `examples/index.yaml` before writing any dimension from scratch.
 
-The `my-org/` directory stores your org-specific context. It's auto-populated from your costformation file and the CloudZero MCP — you don't need to fill it in manually. The agent refreshes it whenever you pull a new costformation version.
+The workspace-root `my-org/` directory stores your org-specific context. It is
+outside the cloned repository, auto-populated from your CostFormation file and
+the CloudZero MCP, and refreshed whenever you pull a new CostFormation version.
 
 Without the instruction file, agents confidently generate wrong CostFormation syntax from general knowledge. The output looks plausible but uses incorrect structure. The brain fixes this.
 
@@ -94,6 +139,16 @@ The repo includes a CostFormation linter and eval framework. Requires `ruamel.ya
 python3 validator/lint.py costformation.cz.yaml
 python3 validator/lint.py examples/patterns/*.yaml
 
+# Validate the complete proposal against its recorded baseline
+python3 costformation-brain/validator/workspace_check.py .
+
+# Validate distilled evidence and optional MCP capability manifests
+python3 validator/evidence_check.py evidence.yaml
+python3 validator/capability_check.py .costformation/capabilities.yaml
+
+# Run capability-classification golden cases
+python3 evals/harness_run.py
+
 # Integrity checks (index consistency, anonymization scan)
 python3 validator/lint.py --check-integrity
 
@@ -104,6 +159,10 @@ python3 evals/run.py --list
 
 # Run tests (requires pytest)
 python3 -m pytest tests/ -v
+
+# Validate telemetry payloads before sending
+python3 validator/telemetry_check.py payload.json \
+  --costformation costformation.cz.yaml --target-dimension SpendCategory
 ```
 
 **Note:** Tests use `pytest`, not `unittest discover`. Install with `pip install pytest`.
@@ -118,13 +177,16 @@ The brain works without the MCP — it parses your costformation file directly �
 
 | Resource | URL |
 |---|---|
-| CostFormation Overview | https://docs.cloudzero.com/docs/cost-formation-definition-language |
-| CFDL Guide | https://docs.cloudzero.com/docs/costformation-definition-language-guide |
-| CFDL Language Reference | https://docs.cloudzero.com/docs/cfdl-reference |
-| Allocation Short Form Rules | https://docs.cloudzero.com/docs/allocation-short-form-rules |
-| Allocating Shared Costs | https://docs.cloudzero.com/docs/costformation-allocating-shared-costs |
+| CostFormation Overview | https://docs.cloudzero.com/docs/allocate-through-yaml |
+| CostFormation Reference (CFDL) | https://docs.cloudzero.com/docs/cfdl-reference |
+| CostFormation Templates | https://docs.cloudzero.com/docs/dimension-patterns |
+| Building Dimensions | https://docs.cloudzero.com/docs/dimensions |
+| Splitting Shared Costs | https://docs.cloudzero.com/docs/splitting-shared-costs |
+| Telemetry Streams | https://docs.cloudzero.com/docs/telemetry-streams |
+| Sending Telemetry via API | https://docs.cloudzero.com/docs/send-via-api |
 | Telemetry API Reference | https://docs.cloudzero.com/reference/allocation-telemetry-api-1 |
-| Advanced Dimension Features | https://docs.cloudzero.com/docs/ds-advanced-features |
+| Unit Economics | https://docs.cloudzero.com/docs/unit-economics |
+| Unit Cost Tutorial | https://docs.cloudzero.com/docs/tutorial-calculate-unit-cost-metrics |
 | CloudZero MCP Server | https://docs.cloudzero.com/docs/ai-mcp-server |
 | CloudZero CostFormation Toolkit (VS Code) | https://marketplace.visualstudio.com/items?itemName=cloudzero.costformation-toolkit |
 | Claude Code Skills | https://docs.cloudzero.com/docs/ai-skills |

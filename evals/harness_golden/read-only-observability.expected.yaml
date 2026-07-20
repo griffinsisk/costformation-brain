@@ -1,0 +1,6 @@
+capabilities:
+  - server: example-observability
+    categories: [observability, metrics]
+    access: read-only
+    status: available
+    auto_select: true

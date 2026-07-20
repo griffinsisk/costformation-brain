@@ -1,0 +1,6 @@
+capabilities:
+  - server: example-cloud-control
+    categories: [cloud_inventory]
+    access: write-capable
+    status: available
+    auto_select: true

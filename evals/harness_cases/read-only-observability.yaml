@@ -1,0 +1,16 @@
+test_id: read-only-observability
+description: Classify a read-only metrics search tool by capability, not vendor.
+input:
+  server: example-observability
+  tool_name: search_service_metrics
+  tool_description: Search service metrics and return timeseries data without changing external state.
+golden_output: harness_golden/read-only-observability.expected.yaml
+assertions:
+  - path: capabilities.0.categories
+    contains: observability
+  - path: capabilities.0.categories
+    contains: metrics
+  - path: capabilities.0.access
+    equals: read-only
+  - path: capabilities.0.auto_select
+    equals: true

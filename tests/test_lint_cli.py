@@ -176,3 +176,11 @@ def test_human_output_ok_summary():
     assert "OK" in result.stdout or "0 errors" in result.stdout, (
         f"Expected OK/0 errors in output:\n{result.stdout}"
     )
+
+
+def test_help_lists_harness_companion_commands():
+    result = run_lint("--help")
+    assert result.returncode == 0
+    assert "workspace_check.py" in result.stdout
+    assert "evidence_check.py" in result.stdout
+    assert "capability_check.py" in result.stdout

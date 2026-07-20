@@ -1,0 +1,29 @@
+test_id: onboarding-starter-set
+description: Phase-2 starter set build from confirmed discovery signals
+complexity: intermediate
+
+prompt: |
+  Onboarding phase 2. Discovery confirmed: Tag:environment present on 71% of
+  spend with values prod/production/staging/stg/dev; K8s label "team" on
+  workloads maps to engineering teams. Build the starter set: an Environment
+  dimension and a Team dimension.
+
+context:
+  accounts: []
+  existing_dimensions: []
+  has_k8s: true
+
+golden_output: golden_outputs/onboarding-starter-set.expected.yaml
+
+expected_validator:
+  status: pass
+  rule_ids: []
+
+assertions:
+  - type: dimension_exists
+    id: Environment
+  - type: dimension_exists
+    id: Team
+  - type: validator_diagnostics
+    severity: ERROR
+    max: 0

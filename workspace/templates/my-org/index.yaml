@@ -1,0 +1,14 @@
+# Compact summary of organization context. Read this first.
+# Load full my-org files only when the requested work needs detail.
+#
+# last-synced: never
+# source-hash: none
+# context-hash: none
+
+account_count: 0
+dimension_count: 0
+has_k8s: false
+
+top_accounts: []
+top_tags: []
+existing_dimensions: []

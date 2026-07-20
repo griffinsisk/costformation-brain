@@ -1,0 +1,27 @@
+Dimensions:
+  SpendCategory:
+    Name: Spend Category
+    Hide: true
+    Rules:
+      - Type: Group
+        Name: Team-Alpha
+        Conditions:
+          - Source: Tag:team
+            Equals: team-alpha
+      - Type: Group
+        Name: Team-Beta
+        Conditions:
+          - Source: Tag:team
+            Equals: team-beta
+      - Type: Group
+        Name: Shared
+        Conditions:
+          - Source: Tag:cost-pool
+            Equals: shared
+
+  DynamicTeams:
+    Name: Dynamic Teams
+    Hide: true
+    Rules:
+      - Type: GroupBy
+        Source: Tag:team

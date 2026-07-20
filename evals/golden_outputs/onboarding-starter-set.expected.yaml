@@ -1,0 +1,34 @@
+Dimensions:
+  Environment:
+    Name: Environment
+    Child: Service
+    Source: Tag:environment
+    Transforms:
+      - Type: Lower
+    Rules:
+      - Type: Group
+        Name: Production
+        Conditions:
+          - Equals:
+              - prod
+              - production
+      - Type: Group
+        Name: Staging
+        Conditions:
+          - Equals:
+              - staging
+              - stg
+      - Type: Group
+        Name: Development
+        Conditions:
+          - Equals:
+              - dev
+
+  Team:
+    Name: Team
+    Child: Service
+    Source: K8s:Label:team
+    Transforms:
+      - Type: Lower
+    Rules:
+      - Type: GroupBy
