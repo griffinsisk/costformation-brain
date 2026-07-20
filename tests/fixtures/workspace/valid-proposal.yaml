@@ -2,16 +2,16 @@ Dimensions:
   Environment:
     Name: Environment
     Hide: true
-    Source: Tag:environment
     Transforms:
       - Type: Lower
     Rules:
       - Type: GroupBy
+        Source: Tag:environment
   Team:
     Name: Team
     Hide: true
-    Source: Tag:team
     Transforms:
       - Type: Lower
     Rules:
       - Type: GroupBy
+        Source: Tag:team
