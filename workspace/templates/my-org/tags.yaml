@@ -1,0 +1,10 @@
+# My Organization — Tag Inventory
+# Auto-populated by the agent from the CostFormation file and CloudZero MCP.
+# Add notes about casing, coverage gaps, and legacy keys below populated entries.
+#
+# last-synced: never
+# source-hash: none
+
+tags: []
+
+k8s_labels: []

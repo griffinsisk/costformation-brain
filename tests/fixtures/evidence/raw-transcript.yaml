@@ -1,0 +1,16 @@
+evidence:
+  - evidence_id: ev_001
+    pov_id: pov_001
+    source_system: customer-document
+    source_record_id: architecture-plan-v2
+    source_url: drive://accounts/example/architecture-plan-v2
+    captured_at: 2026-07-16T14:30:00Z
+    speaker: Customer platform lead
+    evidence_type: customer_statement
+    subject: environment_mapping
+    statement: Production is represented by prod and prd.
+    status: customer-confirmed
+    confidence: confirmed
+    customer_scope: customer-only
+    promotion_status: unreviewed
+    transcript: This complete meeting transcript must not be persisted.

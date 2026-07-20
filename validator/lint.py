@@ -189,7 +189,12 @@ def format_json(
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="Lint CostFormation YAML files.",
+        description=(
+            "Validate CloudZero CostFormation YAML. Build harness companions: "
+            "workspace_check.py validates baseline/proposal state, "
+            "evidence_check.py validates distilled evidence, and "
+            "capability_check.py validates optional MCP manifests."
+        ),
         prog="lint.py",
     )
     parser.add_argument(

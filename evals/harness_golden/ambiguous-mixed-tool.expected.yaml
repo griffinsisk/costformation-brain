@@ -1,0 +1,6 @@
+capabilities:
+  - server: example-cloud-control
+    categories: [resource_metadata]
+    access: ambiguous
+    status: available
+    auto_select: false

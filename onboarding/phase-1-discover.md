@@ -1,5 +1,8 @@
 # Phase 1 — Discover
 
+All `my-org/` paths in this document are relative to the customer workspace
+root, not the `costformation-brain` repository.
+
 **Phase 1 of 5.** Inventory every billing signal across all six sources. Confirm
 interpretations. Produce a signal inventory table the agent carries into phase 2.
 

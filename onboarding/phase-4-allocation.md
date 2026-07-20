@@ -114,7 +114,8 @@ Write down before touching any YAML:
 
 ### Step 3 — Collector
 
-Copy `onboarding/templates/collector.py.tmpl` into the change sub-folder. Fill in:
+Copy `onboarding/templates/collector.py.tmpl` to
+`context/collectors/<stream-name>.py`. Fill in:
 
 ```
 STREAM_NAME              = "<stream name from step 2>"
@@ -219,12 +220,15 @@ in your API gateway logs?"
 
 Record all paths in `onboarding-state.yaml` under `artifacts`.
 
-- `<change-folder>/<dimension-id>_<date>.yaml` — new/modified dimension YAML (target,
-  allocation, combined view), clean and copy-paste ready
-- `<change-folder>/<dimension-id>_<date>_comments.md` — what it does, paste location,
-  dependencies, testing recommendations
-- `<change-folder>/collector.py` — customized collector (rungs 2–3 only)
-- Stream spec (record in comments file and state file `stream:` field)
+- `costformation.proposed.cz.yaml` — complete proposed definition containing
+  the target, allocation, and combined-view dimensions
+- `context/collectors/<stream-name>.py` — customized collector (rungs 2–3 only)
+- Stream spec — record it in the state file `stream:` field
+
+Build the complete change in `costformation.proposed.cz.yaml` using the latest
+`costformation.cz.yaml` as its immutable baseline. Validate the complete
+proposal with `validator/workspace_check.py`; do not create dimension snippets,
+backup files, or per-change comments files.
 
 ---
 
